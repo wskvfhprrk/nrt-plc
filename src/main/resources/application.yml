@@ -1,0 +1,87 @@
+server:
+  port: 8080 # 服务端口
+
+spring:
+  web:
+    resources:
+      static-locations: classpath:/static/ # 静态资源位置
+  application:
+    name: junchuang # 应用名称
+  jackson:
+    serialization:
+      INDENT_OUTPUT: true # 是否格式化 JSON 输出
+  redis:
+    host: localhost # Redis 主机地址
+    port: 6379 # Redis 端口
+
+mqtt:
+  url: tcp://${url}:1884 # MQTT 服务器 URL
+  username: admin # MQTT 用户名
+  password: 123 # MQTT 密码
+  send_id: "send_${machineCode}" # 发送 ID
+  listen_id: "listen_${machineCode}" # 监听 ID
+
+# 日志配置（仅在 Windows 有效）
+logging:
+  config: classpath:logbak.xml # 日志配置文件路径
+
+# 机器码
+machineCode: A000001 # 用于标识设备的唯一代码
+
+# URL 配置
+url: www.zjngic.com # 服务器地址
+
+# 本机 IP 配置
+ip:
+  local: 192.168.1.2 # 本机 IP 地址
+  nettyPort: 5555 # Netty 端口
+  plc: 192.168.1.3 # 信号采集设备网关
+
+# 机器人状态配置
+robot:
+  reset: false # 是否重置机器人
+  bowlPickupSuccess: false # 是否完成取碗
+  soupOutSuccess: false # 是否完成出汤
+  beefReady: false # 是否牛肉准备完成
+  beefStorageAdded: false # 是否牛肉储存完成
+  steamReady: false # 是否蒸汽准备完成
+  steamAdded: false # 是否添加蒸汽完成
+  seasoningAdded: false # 是否添加调料完成
+  soupAdded: false # 是否添加汤完成
+
+# 出餐完成状态
+#ejectionIsComplete: false # 是否完成出餐
+
+
+# 数据配置
+data:
+  ingredient1Value: 10 # 配料1的值(g)
+  ingredient2Value: 10 # 配料2的值(g)
+  soupExtractionTime: 10 # 抽汤时间（秒）
+  soupHeatingTemperature: 120 # 汤加热温度（℃）
+  soupInsulationTemperature: 80 # 汤保温温度（℃）
+  steamAdditionTimeSeconds: 15 # 加蒸汽时间（秒）
+  soupExhaustTime: 10 # 汤排气时间（秒）
+  ladleWalkingDistanceValue: 1900 # 菜勺走动距离值（脉冲值）
+  ladleDishDumpingDistancePulseValue: 1300 #菜勺倒菜距离（脉冲值）
+  ladleDishDumpingRotationValue: 1300 # 菜勺倒菜转动值（脉冲值）
+  fanPushRodThrustDistanceValue: 1000 # 粉丝推杆推动距离值（脉冲值）
+  openFanTime: 90 #openFanTime(秒)
+  isUseWeighing: false #是否使用称重
+  defaultWeighingValue: 10 #称重默认值(克)
+  dispenseSoupByPulseCount: 10 #抽汤脉冲值
+  
+  # 价格和份量配置
+  portionOptions:
+    small:
+      price: 10
+      quantity: 4
+    mid:
+      price: 15
+      quantity: 6
+    large:
+      price: 20
+      quantity: 8
+    addMeat:
+      price: 30
+      quantity: 10
