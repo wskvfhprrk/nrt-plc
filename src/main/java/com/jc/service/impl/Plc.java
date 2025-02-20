@@ -105,11 +105,13 @@ public class Plc implements DeviceHandler {
         log.info("QB8: {}", hexToBinary(data[10]));
         log.info("QB9: {}", hexToBinary(data[11]));
         log.info("备用: {}", hexToBinary(data[12]));
-        log.info("机器运行状态: {}",hexToBinary(data[13]));
-        log.info("机器人运行状态: {}", data[14]);
-        log.info("机器人运行程序指令代号: {}", data[15]);
-        log.info("当前汤的温度: {}", data[16]);
-        log.info("当前配菜配方的编号: {}", data[17]);
+        log.info("机器运行程序1: {}",hexToBinary(data[13]));
+        log.info("机器运行程序2: {}",hexToBinary(data[14]));
+        log.info("机器人运行状态1: {}",hexToBinary(data[15]));
+        log.info("机器人运行状态2: {}",hexToBinary(data[16]));
+        log.info("当前汤的温度: {}", data[17]+data[18]);
+        log.info("当前电箱的湿度: {}", data[18]+data[19]);
+        log.info("当前电箱的温度: {}", data[20]+data[21]);
         log.info("机器故障码: {}", data[49]);
     }
 
