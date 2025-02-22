@@ -1,7 +1,6 @@
 <template>
   <div class="machine-status-container" style="margin-top: 10px;">
     <h3>机器运行状态</h3>
-
     <!-- 机器状态区域 -->
     <el-card class="status-card">
       <el-row :gutter="20">
@@ -249,9 +248,9 @@ export default {
           { name: '门锁7', pointName: 'V10.6', status: '打开' },
           { name: '备用4', pointName: 'V10.7', status: '关闭' }
         ],
-        currentWeight: 0,
-      }; 
-    },
+        currentWeight: 0
+      }
+    }
   },
   methods: {
     getRobotStatusType(status) {
