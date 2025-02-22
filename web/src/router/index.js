@@ -15,6 +15,7 @@ const PortionSettings = () => import('../components/PortionSettings.vue');
 const OrderingSettings = () => import('../components/OrderingSettings.vue');
 const PriceSettings = () => import('../components/PriceSettings.vue');
 const SetAccount = () => import('@/components/SetAccount.vue');
+const MachineSettings = () => import('@/components/MachineSettings.vue');
 
 const routes = [
     { path: '/login', name: 'Login', component: Login },
@@ -33,7 +34,8 @@ const routes = [
             { path: 'orderingSettings', name: 'OrderingSettings', component: OrderingSettings },
             { path: 'priceSettings', name: 'PriceSettings', component: PriceSettings },
             { path: 'setAccount', name: 'SetAccount', component: SetAccount },
-            { path: 'machineStatus', name: 'MachineStatus', component: MachineStatus }
+            { path: 'machineStatus', name: 'MachineStatus', component: MachineStatus },
+            { path: 'machineSettings', name: 'MachineSettings', component: MachineSettings } // 添加机器设置路由
         ]
     }
 ];

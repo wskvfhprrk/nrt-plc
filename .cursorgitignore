@@ -1,0 +1,41 @@
+# 忽略 IDE 相关文件
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 忽略 Node.js 依赖
+node_modules/
+
+# 忽略构建输出
+dist/
+build/
+
+# 忽略日志文件
+*.log
+logs/
+
+# 忽略本地配置文件
+.env
+.env.local
+.env.development
+.env.production
+
+# 忽略缓存文件
+.cache/
+.temp/
+
+# 忽略 Java 编译输出
+target/
+*.class
+*.jar
+
+# 忽略前端开发临时文件
+*.map
+*.css
+*.js
+
+# 忽略系统文件
+.DS_Store
+Thumbs.db 
+node_modules
