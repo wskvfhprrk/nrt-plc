@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import MainLayout from '../components/MainLayout.vue';
 import Login from "@/components/Login";
+import MachineStatus from '@/components/MachineStatus.vue';
 
 // 动态导入组件，提升性能
 const OrderPage = () => import('../components/OrderPage.vue');
@@ -31,7 +32,8 @@ const routes = [
             { path: 'portionSettings', name: 'PortionSettings', component: PortionSettings },
             { path: 'orderingSettings', name: 'OrderingSettings', component: OrderingSettings },
             { path: 'priceSettings', name: 'PriceSettings', component: PriceSettings },
-            { path: 'setAccount', name: 'SetAccount', component: SetAccount }
+            { path: 'setAccount', name: 'SetAccount', component: SetAccount },
+            { path: 'machineStatus', name: 'MachineStatus', component: MachineStatus }
         ]
     }
 ];
@@ -48,16 +50,13 @@ const router = createRouter({
 
 // 全局路由守卫
 router.beforeEach((to, from, next) => {
-    const publicPages = ['OrderPage', 'Login']; // 不需要登录的页面
-    const authRequired = !publicPages.includes(to.name); // 需要登录的页面
-    const loggedIn = isAuthenticated(); // 检查登录状态
+    const publicPages = ['OrderPage', 'Login'];
+    const authRequired = !publicPages.includes(to.name);
+    const loggedIn = !!localStorage.getItem('userToken');
 
     if (authRequired && !loggedIn) {
-        // 如果需要登录且用户未登录，跳转到登录页面
         return next('/login');
     }
-
-    // 如果不需要登录或者已经登录，则继续访问
     next();
 });
 

@@ -30,12 +30,11 @@ import java.util.stream.Collectors;
 @RequestMapping("/orders")
 @CrossOrigin(origins = "http://localhost:8080") // 允许来自该域的请求
 public class OrderController {
+
     @Autowired
     private RedisTemplate redisTemplate;
     @Autowired
     private MqttProviderConfig mqttProviderConfig;
-    @Autowired
-    private MqttConsumerConfig mqttConsumerConfig;
     @Value("${machineCode}")
     private String machineCode;
 
@@ -50,11 +49,8 @@ public class OrderController {
      */
     @PostMapping
     public ResponseEntity<String> submitOrder(@RequestBody OrderVo orderVo) throws Exception {
-        log.info("mqtt服务器重新连接中");
-        mqttProviderConfig.connect();
-        mqttConsumerConfig.connect();
-        Order order = new Order();
-        BeanUtils.copyProperties(orderVo, order);
+        Order order=new Order();
+        BeanUtils.copyProperties(orderVo,order);
 
         order.setSelectedPrice(portionOptionsConfig.findPriceByType(orderVo.getSelectedPrice()));
 
@@ -107,6 +103,29 @@ public class OrderController {
             this.completedOrders = completedOrders;
         }
 
+        public List<Order> getPendingOrders() {
+            return pendingOrders;
+        }
+
+        public void setPendingOrders(List<Order> pendingOrders) {
+            this.pendingOrders = pendingOrders;
+        }
+
+        public List<Order> getInProgressOrders() {
+            return inProgressOrders;
+        }
+
+        public void setInProgressOrders(List<Order> inProgressOrders) {
+            this.inProgressOrders = inProgressOrders;
+        }
+
+        public List<Order> getCompletedOrders() {
+            return completedOrders;
+        }
+
+        public void setCompletedOrders(List<Order> completedOrders) {
+            this.completedOrders = completedOrders;
+        }
     }
 
     @GetMapping("qrcode")

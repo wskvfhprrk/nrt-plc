@@ -1,7 +1,6 @@
 package com.jc.service.impl;
 
 import com.jc.config.DataConfig;
-import com.jc.config.PubConfig;
 import com.jc.config.Result;
 import com.jc.constants.Constants;
 import com.jc.mqtt.MqttConsumerConfig;

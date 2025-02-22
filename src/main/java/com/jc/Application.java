@@ -14,6 +14,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
 
 @SpringBootApplication(scanBasePackages = "com.jc")
 @EnableAsync
@@ -38,6 +39,14 @@ public class Application {
         mqttProviderConfig.connect();
         //启动mqtt接收端连接
         mqttConsumerConfig.connect();
+        //打开windows浏览器脚本全屏显示
+        try {
+            String scriptPath = "C:\\scripts\\open_browser.ps1";
+            String command = "powershell.exe -ExecutionPolicy Bypass -File \"" + scriptPath + "\"";
+            Runtime.getRuntime().exec(command);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Bean

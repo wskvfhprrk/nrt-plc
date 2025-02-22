@@ -15,12 +15,10 @@
 </template>
 
 <script>
-import Head from '@/components/Head.vue';
 import Menu from '@/components/Menu.vue';
 export default {
   name: 'MainLayout',
   components: {
-    Head,
     Menu
   },
   computed: {

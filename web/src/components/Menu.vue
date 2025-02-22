@@ -44,6 +44,9 @@
         <el-menu-item index="10">
           机器账户设置
         </el-menu-item>
+        <el-menu-item index="11">
+          机器状态
+        </el-menu-item>
       </el-menu-item-group>
     </el-menu>
   </div>
@@ -54,7 +57,7 @@ export default {
   name: 'Menu',
   data() {
     return {
-      activeIndex: this.getActiveIndex(), // 根据路由初始化选中项
+      activeIndex: this.getActiveIndex(),
       menuBackgroundColor: '#eeeeee',  // 默认颜色，之后会被替换
       menuTextColor: '#333333',        // 默认颜色，之后会被替换
       menuActiveTextColor: '#ffffff',  // 默认颜色，之后会被替换
@@ -101,6 +104,9 @@ export default {
         case '10':
           this.$router.push('/setAccount');
           break;
+        case '11':
+          this.$router.push('/machineStatus');
+          break;
         default:
           this.$router.push('/');
       }
@@ -108,6 +114,8 @@ export default {
     getActiveIndex() {
       const path = this.$route.path;
       switch (path) {
+        case '/':
+          return '1';
         case '/salesStatistics':
           return '2';
         case '/cleaningOperation':
@@ -126,14 +134,16 @@ export default {
           return '9';
         case '/setAccount':
           return '10';
+        case '/machineStatus':
+          return '11';
         default:
-          return '1'; // 默认项：点餐页面
+          return '1';
       }
     }
   },
   watch: {
     '$route'(to) {
-      this.activeIndex = this.getActiveIndex(); // 路由变化时更新选中项
+      this.activeIndex = this.getActiveIndex();
     }
   }
 };
