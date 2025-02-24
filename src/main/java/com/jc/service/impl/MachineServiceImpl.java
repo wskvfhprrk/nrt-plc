@@ -138,7 +138,7 @@ public class MachineServiceImpl implements MachineService {
     
     public List<InputPoint> getInputPoints() {
         List<InputPoint> inputPoints = new ArrayList<>();
-        // 根据 plc_points_cursor 的实际状态更新输入点
+        // 只保留输入类型的点位
         inputPoints.add(new InputPoint("粉丝到位传感器", "V1.0", "打开"));
         inputPoints.add(new InputPoint("粉丝气缸1", "V1.1", "关闭"));
         inputPoints.add(new InputPoint("粉丝气缸2", "V1.2", "打开"));
@@ -175,17 +175,13 @@ public class MachineServiceImpl implements MachineService {
         inputPoints.add(new InputPoint("气压开关", "V5.2", "关闭"));
         inputPoints.add(new InputPoint("备用1", "V5.3", "打开"));
         inputPoints.add(new InputPoint("备用2", "V5.4", "关闭"));
-        inputPoints.add(new InputPoint("备用3", "V5.5", "打开"));
-        inputPoints.add(new InputPoint("备用4", "V5.6", "关闭"));
-        inputPoints.add(new InputPoint("备用5", "V5.7", "打开"));
-        inputPoints.add(new InputPoint("备用6", "V5.8", "关闭"));
-        inputPoints.add(new InputPoint("备用7", "V6.0", "打开"));
         return inputPoints;
     }
 
     public List<OutputPoint> getOutputPoints() {
         List<OutputPoint> outputPoints = new ArrayList<>();
-        // 根据 plc_points_cursor 的实际状态更新输出点
+        // 修改重复的备用4命名，使其与PLC地址表一致
+        outputPoints.clear(); // 清空现有列表，重新按照PLC地址表顺序添加
         outputPoints.add(new OutputPoint("粉丝仓气缸1", "V7.0", "关闭"));
         outputPoints.add(new OutputPoint("粉丝仓气缸2", "V7.1", "打开"));
         outputPoints.add(new OutputPoint("粉丝仓气缸3", "V7.2", "关闭"));
@@ -217,7 +213,8 @@ public class MachineServiceImpl implements MachineService {
         outputPoints.add(new OutputPoint("门锁5", "V10.4", "关闭"));
         outputPoints.add(new OutputPoint("门锁6", "V10.5", "打开"));
         outputPoints.add(new OutputPoint("门锁7", "V10.6", "关闭"));
-        outputPoints.add(new OutputPoint("备用4", "V10.7", "打开"));
+        outputPoints.add(new OutputPoint("备用11", "V10.7", "打开")); // 将重复的"备用4"改为"备用11"
+
         return outputPoints;
     }
 
