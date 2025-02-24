@@ -14,7 +14,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
 
 @SpringBootApplication(scanBasePackages = "com.jc")
 @EnableAsync
@@ -40,13 +39,13 @@ public class Application {
         //启动mqtt接收端连接
         mqttConsumerConfig.connect();
         //打开windows浏览器脚本全屏显示
-        try {
-            String scriptPath = "C:\\scripts\\open_browser.ps1";
-            String command = "powershell.exe -ExecutionPolicy Bypass -File \"" + scriptPath + "\"";
-            Runtime.getRuntime().exec(command);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            String scriptPath = "C:\\scripts\\open_browser.ps1";
+//            String command = "powershell.exe -ExecutionPolicy Bypass -File \"" + scriptPath + "\"";
+//            Runtime.getRuntime().exec(command);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
     @Bean
@@ -54,12 +53,7 @@ public class Application {
         return args -> {
             // 启动Netty服务器
             ChannelFuture serverFuture = ctx.getBean("serverBootstrap", ChannelFuture.class);
-            if (serverFuture != null) {
-                serverFuture.sync();
-//                log.info("Netty服务器启动成功。");
-            } else {
-                log.error("Netty服务器启动失败。");
-            }
+            serverFuture.sync();
 
 
             // 添加关闭钩子

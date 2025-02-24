@@ -16,10 +16,13 @@
 
 <script>
 import Menu from '@/components/Menu.vue';
+import Head from '@/components/Head.vue';
+
 export default {
   name: 'MainLayout',
   components: {
-    Menu
+    Menu,
+    Head
   },
   computed: {
     // 判断当前路由是否展示菜单和项部时才展示
@@ -33,8 +36,5 @@ export default {
 <style scoped>
 el-container{
   background-color: var(--beige);
-}
-.el-header{
-  --el-header-padding: 0 0;
 }
 </style>

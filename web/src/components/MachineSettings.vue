@@ -108,6 +108,8 @@
 </template>
 
 <script>
+import axios from 'axios'; // 确保您已安装 axios
+
 export default {
   name: 'MachineSettings',
   data() {
@@ -125,13 +127,36 @@ export default {
       }
     }
   },
+  created() {
+    this.loadSettings(); // 组件创建时加载设置
+  },
   methods: {
+    loadSettings() {
+      axios.get('/machine-settings/get')
+        .then(response => {
+          this.form = response.data.data; // 更新表单数据
+        })
+        .catch(error => {
+          this.$message({
+            message: '加载设置失败',
+            type: 'error'
+          });
+        });
+    },
     saveSettings() {
-      // 这里添加保存设置的逻辑
-      this.$message({
-        message: '设置已保存',
-        type: 'success'
-      });
+      axios.post('/machine-settings/save', this.form)
+        .then(response => {
+          this.$message({
+            message: response.data.message,
+            type: 'success'
+          });
+        })
+        .catch(error => {
+          this.$message({
+            message: '保存设置失败',
+            type: 'error'
+          });
+        });
     },
     resetSettings() {
       // 重置表单

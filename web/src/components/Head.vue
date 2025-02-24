@@ -10,7 +10,14 @@
 
 <script>
 export default {
-  name: 'Head'
+  name: 'Head',
+  data() {
+    return {
+      errorHandler: () => {
+        console.error("头像加载失败");
+      }
+    };
+  }
 };
 </script>
 

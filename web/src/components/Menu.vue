@@ -17,7 +17,7 @@
 
       <!-- 菜单组 2 -->
       <el-menu-item-group title="设置页面">
-        <el-menu-item index="2" @click="goTo('machineStatus')">
+        <el-menu-item index="2" @click="goTo('/machineStatus')">
           机器状态
         </el-menu-item>
         <el-menu-item index="3" @click="goTo('salesStatistics')">
@@ -47,7 +47,7 @@
         <el-menu-item index="11" @click="goTo('priceSettings')">
           价格设置
         </el-menu-item>
-        <el-menu-item index="12" @click="goTo('machineSettings')">
+        <el-menu-item index="12" @click="goTo('/machineSettings')">
           机器设置
         </el-menu-item>
       </el-menu-item-group>
@@ -90,7 +90,7 @@ export default {
           this.goTo('/');
           break;
         case '2':
-          this.goTo('machineStatus');
+          this.goTo('/machineStatus');
           break;
         case '3':
           this.goTo('salesStatistics');
@@ -120,7 +120,7 @@ export default {
           this.goTo('priceSettings');
           break;
         case '12':
-          this.goTo('machineSettings');
+          this.goTo('/machineSettings');
           break;
         default:
           this.goTo('/');
@@ -172,18 +172,18 @@ export default {
   border-right: none;
 }
 
-.custom-menu .el-menu-item {
+.custom-menu  {
   background-color: #eeeeee;
   color: #333333;
   transition: background-color 0.3s, color 0.3s;
   cursor: pointer; /* 确保整个菜单项看起来是可以点击的 */
 }
 
-.custom-menu .el-menu-item:hover {
+.custom-menu :hover {
   background-color: #e0e0e0;
 }
 
-.custom-menu .el-menu-item.is-active {
+.custom-menu {
   background-color: var(--deep-blue) !important;
   color: var(--silver) !important;
 }
