@@ -40,7 +40,16 @@ public class MachineController {
     // 添加新的报警复位端点
     @PutMapping("/alerts/reset")
     public Result resetAlert(@RequestParam int alertId) {
-        return Result.success();
+        return machineService.resetAlert(alertId);
+    }
+
+    @DeleteMapping("/alerts/clear")
+    public Result clearAllAlerts() {
+        try {
+            return machineService.clearAllAlerts();
+        } catch (Exception e) {
+            return Result.error("清除报警信息失败: " + e.getMessage());
+        }
     }
 
 }

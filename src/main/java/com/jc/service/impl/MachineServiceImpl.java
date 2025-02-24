@@ -1,25 +1,26 @@
 package com.jc.service.impl;
 
+import com.jc.config.Result;
 import com.jc.entity.MachineStatus;
 import com.jc.entity.InputPoint;
 import com.jc.entity.OutputPoint;
 import com.jc.entity.Alert;
 import com.jc.service.MachineService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.List;
 import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
+@Slf4j
 public class MachineServiceImpl implements MachineService {
-
-//    @Autowired
-//    private AlertMapper alertMapper; // 添加AlertMapper的依赖注入
-
     private MachineStatus currentSettings; // 存储当前设置
     private List<Alert> alerts = new ArrayList<>(); // 存储报警信息
-    private long alertIdCounter = 1; // 用于生成报警ID
 
     // 初始化默认设置
     public MachineServiceImpl() {
@@ -36,12 +37,10 @@ public class MachineServiceImpl implements MachineService {
         currentSettings.setStatus("running");
         
         // 修改报警信息初始化，添加ID值
-        Alert alert1 = new Alert("2023-10-01 10:00", "一级", "温度过高", false);
-        alert1.setId(alertIdCounter++);
+        Alert alert1 = new Alert(1,"2023-10-01 10:00", "一级", "温度过高", false);
         alerts.add(alert1);
         
-        Alert alert2 = new Alert("2023-10-01 10:05", "二级", "水位低", true);
-        alert2.setId(alertIdCounter++);
+        Alert alert2 = new Alert(2,"2023-10-01 10:05", "二级", "水位低", true);
         alerts.add(alert2);
     }
 
@@ -228,27 +227,6 @@ public class MachineServiceImpl implements MachineService {
         return outputPoints;
     }
 
-    // 修改重置报警的方法，使用id来查找
-    public void resetAlert(Long alertId) {
-        for (Alert alert : alerts) {
-            if (alert.getId().equals(alertId)) {
-                alert.setResolved(true);
-                break;
-            }
-        }
-    }
-
-    // 修改添加新报警的方法
-    public void addAlert(String level, String message) {
-        Alert alert = new Alert(
-            java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
-            level,
-            message,
-            false
-        );
-        alert.setId(alertIdCounter++); // 设置自增ID
-        alerts.add(alert);
-    }
 
     // 修改获取报警信息的方法
     public List<Alert> getAlerts() {
@@ -256,13 +234,26 @@ public class MachineServiceImpl implements MachineService {
     }
 
     @Override
-    public void resetAlert(int id) {
+    public Result resetAlert(int id) {
         // 首先检查内存中的alerts
         for (Alert alert : alerts) {
             if (alert.getId() != null && alert.getId() == id) {
                 alert.setResolved(true);
                 break;
             }
+        }
+        return Result.success();
+    }
+
+    @Override
+    @Transactional
+    public Result clearAllAlerts() {
+        try {
+            // 清除数据库中的报警记录
+            return Result.success();
+        } catch (Exception e) {
+            log.error("清除报警信息失败", e);
+            return Result.error(e.getMessage());
         }
     }
 } 

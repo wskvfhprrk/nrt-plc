@@ -142,7 +142,17 @@
 
     <!-- 报警信息模块 -->
     <el-card class="alerts-card">
-      <h4>报警信息</h4>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h4 style="margin: 0;">报警信息</h4>
+        <el-button 
+          type="danger" 
+          size="small" 
+          @click="clearAllAlerts"
+          :disabled="!machineData.alerts.length"
+        >
+          清除报警信息
+        </el-button>
+      </div>
       <el-table :data="machineData.alerts" style="width: 100%">
         <el-table-column prop="time" label="时间" />
         <el-table-column prop="level" label="报警级别">
@@ -358,6 +368,26 @@ export default {
         console.error('时间格式化失败:', error);
         return timestamp; // 发生错误时返回原始值
       }
+    },
+    async clearAllAlerts() {
+      try {
+        const response = await fetch('/machines/alerts/clear', {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          this.machineData.alerts = [];
+          this.$message({
+            type: 'success',
+            message: '报警信息已清除'
+          });
+        } else {
+          this.$message.error('清除报警信息失败');
+        }
+      } catch (error) {
+        console.error('清除报警信息失败:', error);
+        this.$message.error('网络请求失败');
+      }
     }
   },
   mounted() {
@@ -418,5 +448,9 @@ h3 {
 
 h4 {
   margin-bottom: 15px;
+}
+
+.alerts-card h4 {
+  margin: 0;
 }
 </style> 
