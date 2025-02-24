@@ -7,27 +7,27 @@
         <el-col :span="6">
           <div class="status-item">
             <span class="label">机器状态：</span>
-            <el-tag :type="machineData.machineStatus === '运行中' ? 'success' : 'danger'">
-              {{ machineData.machineStatus }}
+            <el-tag :type="machineData.basicStatus?.machineStatus === '运行中' ? 'success' : 'danger'">
+              {{ machineData.basicStatus?.machineStatus || '未知' }}
             </el-tag>
           </div>
         </el-col>
         <el-col :span="6">
           <div class="status-item">
             <span class="label">牛肉汤温度：</span>
-            <span class="value" :style="{ color: machineData.currentTemperature > 80 ? 'red' : 'black' }">{{ machineData.currentTemperature }}°C</span>
+            <span class="value" :style="{ color: machineData.basicStatus.currentTemperature > 80 ? 'red' : 'black' }">{{ machineData.basicStatus.currentTemperature }}°C</span>
           </div>
         </el-col>
         <el-col :span="6">
           <div class="status-item">
             <span class="label">菜重量：</span>
-            <span class="value">{{ machineData.currentWeight }} g</span>
+            <span class="value">{{ machineData.basicStatus.currentWeight }} g</span>
           </div>
         </el-col>
         <el-col :span="6">
           <div class="status-item">
             <span class="label">运行时间：</span>
-            <span class="value">{{ machineData.uptime }}</span>
+            <span class="value">{{ machineData.basicStatus.uptime }}</span>
           </div>
         </el-col>
       </el-row>
@@ -39,15 +39,15 @@
         <el-col :span="12">
           <div class="status-item">
             <span class="label">机器人状态：</span>
-            <el-tag :type="getRobotStatusType(machineData.robotStatus)">
-              {{ machineData.robotStatus }}
+            <el-tag :type="getRobotStatusType(machineData.robotStatus.robotStatus)">
+              {{ machineData.robotStatus.robotStatus }}
             </el-tag>
           </div>
         </el-col>
         <el-col :span="12">
           <div class="status-item">
             <span class="label">机器人运行程序：</span>
-            <span class="program-value">{{ machineData.currentProgram }}</span>
+            <span class="program-value">{{ machineData.robotStatus.currentProgram }}</span>
           </div>
         </el-col>
       </el-row>
@@ -59,13 +59,13 @@
         <el-col :span="8">
           <div class="status-item">
             <span class="label">电箱温度：</span>
-            <span class="value">{{ machineData.electricalBoxTemperature }}°C</span>
+            <span class="value">{{ machineData.electricalBoxStatus.temperature }}°C</span>
           </div>
         </el-col>
         <el-col :span="8">
           <div class="status-item">
             <span class="label">电箱湿度：</span>
-            <span class="value">{{ machineData.electricalBoxHumidity }}%</span>
+            <span class="value">{{ machineData.electricalBoxStatus.humidity }}%</span>
           </div>
         </el-col>
         <el-col :span="8">
@@ -82,8 +82,8 @@
     <!-- 设备输入点状态 -->
     <el-card class="components-card">
       <h4>设备输入点状态</h4>
-      <div style="display: flex; justify-content: space-between;">
-        <el-table :data="machineData.inputPointsStatusLeft" style="width: 48%">
+      <div v-if="machineData.inputPoints.length > 0" style="display: flex; justify-content: space-between;">
+        <el-table :data="machineData.inputPoints.slice(0, Math.ceil(machineData.inputPoints.length / 2))" style="width: 48%">
           <el-table-column prop="name" label="名称" />
           <el-table-column prop="pointName" label="点位" />
           <el-table-column prop="status" label="状态值">
@@ -94,8 +94,7 @@
             </template>
           </el-table-column>
         </el-table>
-
-        <el-table :data="machineData.inputPointsStatusRight" style="width: 48%">
+        <el-table :data="machineData.inputPoints.slice(Math.ceil(machineData.inputPoints.length / 2))" style="width: 48%">
           <el-table-column prop="name" label="名称" />
           <el-table-column prop="pointName" label="点位" />
           <el-table-column prop="status" label="状态值">
@@ -107,13 +106,14 @@
           </el-table-column>
         </el-table>
       </div>
+      <div v-else>没有输入点数据</div>
     </el-card>
 
     <!-- 设备输出点状态 -->
     <el-card class="components-card">
       <h4>设备输出点状态</h4>
-      <div style="display: flex; justify-content: space-between;">
-        <el-table :data="machineData.outputPointsStatusLeft" style="width: 48%">
+      <div v-if="machineData.outputPoints.length > 0" style="display: flex; justify-content: space-between;">
+        <el-table :data="machineData.outputPoints.slice(0, Math.ceil(machineData.outputPoints.length / 2))" style="width: 48%">
           <el-table-column prop="name" label="名称" />
           <el-table-column prop="pointName" label="点位" />
           <el-table-column prop="status" label="状态值">
@@ -124,8 +124,7 @@
             </template>
           </el-table-column>
         </el-table>
-
-        <el-table :data="machineData.outputPointsStatusRight" style="width: 48%">
+        <el-table :data="machineData.outputPoints.slice(Math.ceil(machineData.outputPoints.length / 2))" style="width: 48%">
           <el-table-column prop="name" label="名称" />
           <el-table-column prop="pointName" label="点位" />
           <el-table-column prop="status" label="状态值">
@@ -137,6 +136,7 @@
           </el-table-column>
         </el-table>
       </div>
+      <div v-else>没有输出点数据</div>
     </el-card>
 
     <!-- 报警信息模块 -->
@@ -146,7 +146,7 @@
         <el-table-column prop="time" label="时间" />
         <el-table-column prop="level" label="报警级别">
           <template #default="{ row }">
-            <el-tag :type="row.level === '一级' ? 'danger' : ''">
+            <el-tag :type="getAlertLevelType(row.level)">
               {{ row.level }}
             </el-tag>
           </template>
@@ -161,7 +161,7 @@
         </el-table-column>
         <el-table-column label="操作">
           <template #default="{ row }">
-            <el-button v-if="!row.resolved" @click="resetAlert(row)" type="danger" size="mini">复位</el-button>
+            <el-button v-if="!row.resolved" @click="resetAlert(row)" type="danger" size="small">复位</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -175,80 +175,23 @@ export default {
   data() {
     return {
       machineData: {
-        machineStatus: '运行中',
-        currentTemperature: 85,
-        uptime: '12小时34分钟',
-        robotStatus: '运行中',
-        currentProgram: '取粉丝',
-        inputPointsStatusLeft: [
-          { name: '粉丝到位传感器', pointName: 'V1.0', status: '打开' },
-          { name: '粉丝气缸1', pointName: 'V1.1', status: '关闭' },
-          { name: '粉丝气缸2', pointName: 'V1.2', status: '打开' },
-          { name: '粉丝气缸3', pointName: 'V1.3', status: '关闭' },
-          { name: '粉丝气缸4', pointName: 'V1.4', status: '打开' },
-          { name: '粉丝气缸5', pointName: 'V1.5', status: '关闭' },
-          { name: '粉丝气缸6', pointName: 'V1.6', status: '打开' },
-          { name: '出碗检测', pointName: 'V1.7', status: '关闭' },
-          { name: '是否有碗', pointName: 'V2.0', status: '打开' },
-          { name: '碗报警', pointName: 'V2.1', status: '关闭' },
-          { name: '出碗电机', pointName: 'V2.2', status: '打开' }
-        ],
-        inputPointsStatusRight: [
-          { name: '做汤机气缸', pointName: 'V2.3', status: '关闭' },
-          { name: '流量计', pointName: 'V2.4', status: '打开' },
-          { name: '出餐口气缸', pointName: 'V2.5', status: '关闭' },
-          { name: '推碗气缸', pointName: 'V2.6', status: '打开' },
-          { name: '门锁1', pointName: 'V2.7', status: '关闭' },
-          { name: '门锁2', pointName: 'V3.0', status: '打开' },
-          { name: '门锁3', pointName: 'V3.1', status: '关闭' },
-          { name: '门锁4', pointName: 'V3.2', status: '打开' },
-          { name: '门锁5', pointName: 'V3.3', status: '关闭' },
-          { name: '门锁6', pointName: 'V3.4', status: '打开' },
-          { name: '门锁7', pointName: 'V3.5', status: '关闭' }
-        ],
-        alerts: [
-          { time: '2023-10-01 11:30', message: '称重系统异常', level: '一级', resolved: false },
-          { time: '2023-10-01 10:00', message: '温度过高', level: '二级', resolved: true }
-        ],
-        electricalBoxTemperature: 35,
-        electricalBoxHumidity: 85,
-        outputPointsStatusLeft: [
-          { name: '粉丝仓气缸1', pointName: 'V7.0', status: '打开' },
-          { name: '粉丝仓气缸2', pointName: 'V7.1', status: '关闭' },
-          { name: '粉丝仓气缸3', pointName: 'V7.2', status: '打开' },
-          { name: '粉丝仓气缸4', pointName: 'V7.3', status: '关闭' },
-          { name: '粉丝仓气缸5', pointName: 'V7.4', status: '打开' },
-          { name: '粉丝仓气缸6', pointName: 'V7.5', status: '关闭' },
-          { name: '做汤机气缸', pointName: 'V7.6', status: '打开' },
-          { name: '出餐口气缸', pointName: 'V7.7', status: '关闭' },
-          { name: '推碗气缸', pointName: 'V8.0', status: '打开' },
-          { name: '夹手气缸', pointName: 'V8.1', status: '关闭' },
-          { name: '旋转气缸', pointName: 'V8.2', status: '打开' },
-          { name: '切网机气缸', pointName: 'V8.3', status: '关闭' },
-          { name: '切肉机气缸', pointName: 'V8.4', status: '打开' },
-          { name: '汤桶加热蒸汽阀', pointName: 'V8.5', status: '关闭' },
-          { name: '出汤电磁阀', pointName: 'V8.6', status: '打开' },
-          { name: '消毒蒸汽阀', pointName: 'V8.7', status: '关闭' }
-        ],
-        outputPointsStatusRight: [
-          { name: '备用3', pointName: 'V9.0', status: '打开' },
-          { name: '备用4', pointName: 'V9.1', status: '关闭' },
-          { name: '备用5', pointName: 'V9.2', status: '打开' },
-          { name: '备用6', pointName: 'V9.3', status: '关闭' },
-          { name: '备用7', pointName: 'V9.4', status: '打开' },
-          { name: '备用8', pointName: 'V9.5', status: '关闭' },
-          { name: '备用9', pointName: 'V9.6', status: '打开' },
-          { name: '备用10', pointName: 'V9.7', status: '关闭' },
-          { name: '门锁1', pointName: 'V10.0', status: '打开' },
-          { name: '门锁2', pointName: 'V10.1', status: '关闭' },
-          { name: '门锁3', pointName: 'V10.2', status: '打开' },
-          { name: '门锁4', pointName: 'V10.3', status: '关闭' },
-          { name: '门锁5', pointName: 'V10.4', status: '打开' },
-          { name: '门锁6', pointName: 'V10.5', status: '关闭' },
-          { name: '门锁7', pointName: 'V10.6', status: '打开' },
-          { name: '备用4', pointName: 'V10.7', status: '关闭' }
-        ],
-        currentWeight: 0
+        basicStatus: {
+          machineStatus: '未知',
+          currentTemperature: 0,
+          currentWeight: 0,
+          uptime: ''
+        },
+        robotStatus: {
+          robotStatus: '未知',
+          currentProgram: ''
+        },
+        electricalBoxStatus: {
+          temperature: 0,
+          humidity: 0
+        },
+        inputPoints: [],
+        outputPoints: [],
+        alerts: []
       }
     }
   },
@@ -270,18 +213,45 @@ export default {
         case '机械劈运动中':
           return 'warning';
         default:
-          return '';
+          return 'info';
       }
     },
-    resetAlert(alert) {
-      // 处理复位逻辑
-      alert.resolved = true;
+    getAlertLevelType(level) {
+      switch (level) {
+        case '一级':
+          return 'danger';
+        case '二级':
+          return 'warning';
+        default:
+          return 'info';
+      }
+    },
+    async resetAlert(row) {
+      try {
+        const response = await fetch('/machines/alerts/reset', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ time: row.time })
+        });
+        
+        if (response.ok) {
+          row.resolved = true;
+          this.$message.success('复位成功');
+        } else {
+          this.$message.error('复位失败');
+        }
+      } catch (error) {
+        console.error('复位请求失败:', error);
+        this.$message.error('网络请求失败');
+      }
     },
     getElectricalBoxStatus() {
-      if (this.machineData.electricalBoxTemperature > 40) {
+      if (this.machineData.electricalBoxStatus.temperature > 40) {
         return '过热';
       }
-      if (this.machineData.electricalBoxHumidity > 90) {
+      if (this.machineData.electricalBoxStatus.humidity > 90) {
         return '过潮';
       }
       return '正常';
@@ -295,15 +265,69 @@ export default {
         case '正常':
           return 'success';
         default:
-          return '';
+          return 'info';
       }
+    },
+    async fetchMachineStatus() {
+      try {
+        const response = await fetch('/machines/status');
+        const result = await response.json();
+        
+        // 添加数据兼容处理
+        const backendData = result.data || {};
+        
+        console.log('Backend data:', backendData);
+        
+        // 分离输入和输出点
+        const inputPoints = backendData.inputPoints || [];
+        const outputPoints = backendData.outputPoints || [];
+
+        this.machineData = {
+          ...this.machineData,
+          basicStatus: {
+            ...this.machineData.basicStatus,
+            machineStatus: backendData.machineStatus || '未知',
+            currentTemperature: backendData.temperature || 0,
+            currentWeight: backendData.noodleWeight || 0,
+            uptime: `${backendData.cleaningInterval || 0}分钟`
+          },
+          robotStatus: {
+            ...this.machineData.robotStatus,
+            robotStatus: this.translateStatus(backendData.status) || '待实现',
+            currentProgram: backendData.currentProgram || '待实现'
+          },
+          electricalBoxStatus: {
+            ...this.machineData.electricalBoxStatus,
+            temperature: backendData.temperature || 0,
+            humidity: backendData.humidity || 0
+          },
+          inputPoints: inputPoints,
+          outputPoints: outputPoints,
+          alerts: backendData.alerts || [] // 处理报警信息
+        };
+
+        console.log('Merged data:', this.machineData);
+      } catch (error) {
+        console.error('获取机器状态失败:', error);
+        // 可添加重试机制
+      }
+    },
+    translateStatus(status) {
+      const statusMap = {
+        'running': '运行中',
+        'standby': '待机中',
+        'stopped': '已停止'
+      };
+      return statusMap[status] || status;
     }
   },
   mounted() {
-    // 模拟状态更新
-    setTimeout(() => {
-      this.machineData.machineStatus = '停止';
-    }, 2000);
+    this.fetchMachineStatus();
+    // 设置定时刷新
+    setInterval(() => {
+      console.log('Fetching machine status...');
+      this.fetchMachineStatus();
+    }, 5000); // 每5秒刷新一次
   }
 };
 </script>
