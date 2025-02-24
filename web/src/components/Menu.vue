@@ -172,19 +172,35 @@ export default {
   border-right: none;
 }
 
-.custom-menu  {
-  background-color: #eeeeee;
-  color: #333333;
-  transition: background-color 0.3s, color 0.3s;
-  cursor: pointer; /* 确保整个菜单项看起来是可以点击的 */
+/* 菜单项的基本样式 */
+:deep(.el-menu-item) {
+  background-color: var(--gray) !important;
+  color: var(--deep-blue) !important;
+  transition: all 0.3s ease;
 }
 
-.custom-menu :hover {
-  background-color: #e0e0e0;
+/* 菜单项悬停效果 */
+:deep(.el-menu-item:hover) {
+  background-color: var(--silver) !important;
+  color: var(--deep-blue) !important;
 }
 
-.custom-menu {
+/* 选中菜单项的样式 */
+:deep(.el-menu-item.is-active) {
   background-color: var(--deep-blue) !important;
   color: var(--silver) !important;
+}
+
+/* 菜单组标题样式 */
+:deep(.el-menu-item-group__title) {
+  padding: 10px 0;
+  color: var(--deep-blue);
+  font-weight: bold;
+  font-size: 16px;
+}
+
+/* 整个菜单的背景色 */
+.custom-menu {
+  background-color: var(--gray) !important;
 }
 </style>

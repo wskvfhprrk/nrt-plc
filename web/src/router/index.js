@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import MainLayout from '../components/MainLayout.vue';
 import Login from "@/components/Login";
 import MachineStatus from '@/components/MachineStatus.vue';
+import MachineSettings from '@/components/MachineSettings.vue'
 
 // 动态导入组件，提升性能
 const OrderPage = () => import('../components/OrderPage.vue');
@@ -33,7 +34,8 @@ const routes = [
             { path: 'orderingSettings', name: 'OrderingSettings', component: OrderingSettings },
             { path: 'priceSettings', name: 'PriceSettings', component: PriceSettings },
             { path: 'setAccount', name: 'SetAccount', component: SetAccount },
-            { path: 'machineStatus', name: 'MachineStatus', component: MachineStatus }
+            { path: 'machineStatus', name: 'MachineStatus', component: MachineStatus },
+            { path: 'machineSettings', name: 'MachineSettings', component: MachineSettings }
         ]
     }
 ];
