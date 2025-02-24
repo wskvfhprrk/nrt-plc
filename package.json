@@ -1,5 +1,9 @@
 {
   "dependencies": {
-    "@jiaminghi/data-view": "^2.10.0"
+    "@jiaminghi/data-view": "^2.10.0",
+    "cors": "^2.8.5"
+  },
+  "scripts": {
+    "serve": "vue-cli-service serve"
   }
 }
