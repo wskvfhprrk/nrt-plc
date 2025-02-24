@@ -38,6 +38,11 @@ module.exports = defineConfig({
                 target: `${baseUrl}/`,
                 changeOrigin: true,
                 secure: false,
+            }, 
+            '/machines': {
+                target: `${baseUrl}/`,
+                changeOrigin: true,
+                secure: false,
             },
             '/ws': {
                 target: `${baseUrl}/`,
