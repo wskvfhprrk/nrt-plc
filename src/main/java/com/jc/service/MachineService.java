@@ -7,5 +7,5 @@ public interface MachineService {
     void saveSettings(MachineStatus settings);
     MachineStatus getSettings();
     Map<String, Object> getMachineStatus();
-    void resetAlert(String alertTime);
+    void resetAlert(int id);
 } 

@@ -30,6 +30,7 @@
             <span class="value">{{ machineData.basicStatus.uptime }}</span>
           </div>
         </el-col>
+        
       </el-row>
     </el-card>
 
@@ -174,6 +175,7 @@ export default {
   name: 'MachineStatus',
   data() {
     return {
+      currentTime: '',
       machineData: {
         basicStatus: {
           machineStatus: '未知',
@@ -228,12 +230,11 @@ export default {
     },
     async resetAlert(row) {
       try {
-        const response = await fetch('/machines/alerts/reset', {
-          method: 'POST',
+        const response = await fetch(`/machines/alerts/reset?alertId=${row.id}`, {
+          method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ time: row.time })
+          }
         });
         
         if (response.ok) {
@@ -276,11 +277,11 @@ export default {
         // 添加数据兼容处理
         const backendData = result.data || {};
         
-        console.log('Backend data:', backendData);
-        
-        // 分离输入和输出点
-        const inputPoints = backendData.inputPoints || [];
-        const outputPoints = backendData.outputPoints || [];
+        // 处理报警信息，格式化时间
+        const alerts = (backendData.alerts || []).map(alert => ({
+          ...alert,
+          time: this.formatDateTime(alert.timestamp) // 改用 timestamp 而不是 time
+        }));
 
         this.machineData = {
           ...this.machineData,
@@ -301,12 +302,11 @@ export default {
             temperature: backendData.temperature || 0,
             humidity: backendData.humidity || 0
           },
-          inputPoints: inputPoints,
-          outputPoints: outputPoints,
-          alerts: backendData.alerts || [] // 处理报警信息
+          inputPoints: backendData.inputPoints || [],
+          outputPoints: backendData.outputPoints || [],
+          alerts: alerts // 使用处理后的报警数据
         };
 
-        console.log('Merged data:', this.machineData);
       } catch (error) {
         console.error('获取机器状态失败:', error);
         // 可添加重试机制
@@ -319,15 +319,59 @@ export default {
         'stopped': '已停止'
       };
       return statusMap[status] || status;
+    },
+    updateCurrentTime() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      
+      this.currentTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    },
+    formatDateTime(timestamp) {
+      if (!timestamp) return '未知时间';
+      
+      try {
+        // 后台传来的格式已经是 "2023-10-01 10:00" 这样的格式
+        // 我们只需要验证一下格式是否正确，如果正确就直接返回
+        if (typeof timestamp === 'string' && timestamp.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/)) {
+          return timestamp; // 如果格式正确，直接返回
+        }
+        
+        // 如果格式不正确，尝试其他格式化方式
+        const date = new Date(timestamp);
+        if (!isNaN(date.getTime())) {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          const hours = String(date.getHours()).padStart(2, '0');
+          const minutes = String(date.getMinutes()).padStart(2, '0');
+          
+          return `${year}-${month}-${day} ${hours}:${minutes}`;
+        }
+        
+        return timestamp; // 如果都不成功，返回原始值
+      } catch (error) {
+        console.error('时间格式化失败:', error);
+        return timestamp; // 发生错误时返回原始值
+      }
     }
   },
   mounted() {
     this.fetchMachineStatus();
-    // 设置定时刷新
+    // 设置定时刷新机器状态
     setInterval(() => {
-      console.log('Fetching machine status...');
       this.fetchMachineStatus();
-    }, 5000); // 每5秒刷新一次
+    }, 5000);
+    
+    // 设置时间更新
+    this.updateCurrentTime(); // 初始化时间
+    setInterval(() => {
+      this.updateCurrentTime();
+    }, 1000); // 每秒更新一次时间
   }
 };
 </script>

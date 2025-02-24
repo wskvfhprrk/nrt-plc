@@ -9,12 +9,17 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.List;
 import java.util.ArrayList;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class MachineServiceImpl implements MachineService {
 
+//    @Autowired
+//    private AlertMapper alertMapper; // 添加AlertMapper的依赖注入
+
     private MachineStatus currentSettings; // 存储当前设置
     private List<Alert> alerts = new ArrayList<>(); // 存储报警信息
+    private long alertIdCounter = 1; // 用于生成报警ID
 
     // 初始化默认设置
     public MachineServiceImpl() {
@@ -30,9 +35,14 @@ public class MachineServiceImpl implements MachineService {
         currentSettings.setNightMode(false);
         currentSettings.setStatus("running");
         
-        // 初始化报警信息
-        alerts.add(new Alert("2023-10-01 10:00", "一级", "温度过高", false));
-        alerts.add(new Alert("2023-10-01 10:05", "二级", "水位低", true));
+        // 修改报警信息初始化，添加ID值
+        Alert alert1 = new Alert("2023-10-01 10:00", "一级", "温度过高", false);
+        alert1.setId(alertIdCounter++);
+        alerts.add(alert1);
+        
+        Alert alert2 = new Alert("2023-10-01 10:05", "二级", "水位低", true);
+        alert2.setId(alertIdCounter++);
+        alerts.add(alert2);
     }
 
     @Override
@@ -218,18 +228,41 @@ public class MachineServiceImpl implements MachineService {
         return outputPoints;
     }
 
-    // 添加新的报警处理方法
-    public void resetAlert(String alertTime) {
+    // 修改重置报警的方法，使用id来查找
+    public void resetAlert(Long alertId) {
         for (Alert alert : alerts) {
-            if (alert.getTime().equals(alertTime)) {
+            if (alert.getId().equals(alertId)) {
                 alert.setResolved(true);
                 break;
             }
         }
     }
 
+    // 修改添加新报警的方法
+    public void addAlert(String level, String message) {
+        Alert alert = new Alert(
+            java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
+            level,
+            message,
+            false
+        );
+        alert.setId(alertIdCounter++); // 设置自增ID
+        alerts.add(alert);
+    }
+
     // 修改获取报警信息的方法
     public List<Alert> getAlerts() {
         return new ArrayList<>(alerts); // 返回副本保证数据安全
+    }
+
+    @Override
+    public void resetAlert(int id) {
+        // 首先检查内存中的alerts
+        for (Alert alert : alerts) {
+            if (alert.getId() != null && alert.getId() == id) {
+                alert.setResolved(true);
+                break;
+            }
+        }
     }
 } 

@@ -4,6 +4,8 @@ import com.jc.config.Result;
 import com.jc.entity.MachineStatus;
 import com.jc.service.MachineService; // 导入服务接口
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -34,16 +36,11 @@ public class MachineController {
         return Result.success(status);
     }
 
-    @GetMapping("/api/machine/status")
-    public Map<String, Object> getMachineStatusFromApi() {
-        return machineService.getMachineStatus();
-    }
 
     // 添加新的报警复位端点
-    @PostMapping("/alerts/reset")
-    public Result resetAlert(@RequestBody Map<String, String> request) {
-        String alertTime = request.get("time");
-        machineService.resetAlert(alertTime);
-        return Result.success("报警已复位");
+    @PutMapping("/alerts/reset")
+    public Result resetAlert(@RequestParam int alertId) {
+        return Result.success();
     }
-} 
+
+}
