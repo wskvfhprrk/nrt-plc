@@ -46,9 +46,13 @@ public class MachineServiceImpl implements MachineService {
 
     @Override
     public void saveSettings(MachineStatus settings) {
-        validateSettings(settings); // 调用新的验证方法
-        // 保存设置
-        this.currentSettings = settings;
+        try {
+            validateSettings(settings); // 调用新的验证方法
+            // 保存设置
+            this.currentSettings = settings;
+        } catch (Exception e) {
+            throw new RuntimeException( e.getMessage());
+        }
     }
 
     // 新增验证设置的方法

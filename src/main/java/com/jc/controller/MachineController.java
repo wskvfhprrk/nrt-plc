@@ -3,6 +3,7 @@ package com.jc.controller;
 import com.jc.config.Result;
 import com.jc.entity.MachineStatus;
 import com.jc.service.MachineService; // 导入服务接口
+import com.jc.service.impl.Reset; // 导入 Reset 类
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,10 +18,17 @@ public class MachineController {
     @Autowired
     private MachineService machineService; // 注入服务
 
+    @Autowired
+    private Reset reset; // 注入 Reset 服务
+
     @PostMapping("/save")
     public Result saveSettings(@RequestBody MachineStatus settings) {
-        machineService.saveSettings(settings); // 使用服务保存设置
-        return Result.success("设置已保存");
+        try {
+            machineService.saveSettings(settings); // 使用服务保存设置
+            return Result.success("设置已保存");
+        } catch (Exception e) {
+            return Result.error("保存设置失败: " + e.getMessage());
+        }
     }
 
     @GetMapping("/get")
@@ -36,11 +44,16 @@ public class MachineController {
         return Result.success(status);
     }
 
-
     // 添加新的报警复位端点
     @PutMapping("/alerts/reset")
     public Result resetAlert(@RequestParam int alertId) {
         return machineService.resetAlert(alertId);
+    }
+
+    // 添加重置接口
+    @PostMapping("/reset")
+    public Result reset() {
+        return getSettings();
     }
 
     @DeleteMapping("/alerts/clear")
@@ -51,5 +64,4 @@ public class MachineController {
             return Result.error("清除报警信息失败: " + e.getMessage());
         }
     }
-
 }
