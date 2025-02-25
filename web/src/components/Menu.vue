@@ -4,9 +4,9 @@
         :default-active="activeIndex"
         class="custom-menu"
         @select="handleSelect"
-        :background-color="'#FFA500'"
-        :text-color="'#FFFFFF'"
-        :active-text-color="'#FF4500'"
+        :background-color="'#FFFFFF'"
+        :text-color="'#333333'"
+        :active-text-color="'#FFFFFF'"
     >
       <!-- 菜单组 1 -->
       <el-menu-item-group title="返回点餐">
@@ -26,7 +26,6 @@
         <el-menu-item index="4" @click="goTo('salesStatistics')">
           销售统计
         </el-menu-item>
-       
       </el-menu-item-group>
     </el-menu>
   </div>
@@ -40,17 +39,7 @@ export default {
   data() {
     return {
       activeIndex: this.getActiveIndex(),
-      menuBackgroundColor: '#eeeeee',  // 默认颜色，之后会被替换
-      menuTextColor: '#333333',        // 默认颜色，之后会被替换
-      menuActiveTextColor: '#ffffff',  // 默认颜色，之后会被替换
     };
-  },
-  mounted() {
-    // 获取 CSS 变量的值
-    const rootStyles = getComputedStyle(document.documentElement);
-    this.menuBackgroundColor = rootStyles.getPropertyValue('--gray').trim();
-    this.menuTextColor = rootStyles.getPropertyValue('--gray').trim();
-    this.menuActiveTextColor = rootStyles.getPropertyValue('--silver').trim();
   },
   setup() {
     const router = useRouter();
@@ -62,25 +51,7 @@ export default {
   methods: {
     handleSelect(key) {
       this.activeIndex = key; // 更新选中项
-      switch (key) {
-        case '1':
-          this.goTo('/');
-          break;
-        case '2':
-          this.goTo('/machineStatus');
-          break;
-        case '3':
-          this.goTo('/machineSettings');
-          break;
-        case '4':
-          this.goTo('salesStatistics');
-          break;
-        case '9':
-          this.goTo('buttons');
-          break;
-        default:
-          this.goTo('/');
-      }
+      this.goTo(key);
     },
     getActiveIndex() {
       const path = this.$route.path;
@@ -111,38 +82,25 @@ export default {
 <style scoped>
 .custom-menu {
   width: 200px;
-  border-right: none;
 }
 
-/* 菜单项的基本样式 */
-:deep(.el-menu-item) {
-  background-color: var(--gray) !important;
-  color: var(--deep-blue) !important;
-  transition: all 0.3s ease;
+.el-menu-vertical {
+  background-color: #ffffff; /* 背景颜色 */
 }
 
-/* 菜单项悬停效果 */
-:deep(.el-menu-item:hover) {
-  background-color: var(--silver) !important;
-  color: var(--deep-blue) !important;
+.el-menu-item {
+  font-size: 16px; /* 字体大小 */
+  color: #333; /* 默认字体颜色 */
+  border-radius: 8px; /* 圆角 */
 }
 
-/* 选中菜单项的样式 */
-:deep(.el-menu-item.is-active) {
-  background-color: var(--deep-blue) !important;
-  color: var(--silver) !important;
+.el-menu-item:hover {
+  background-color: #f0f0f0; /* 悬停时背景颜色 */
 }
 
-/* 菜单组标题样式 */
-:deep(.el-menu-item-group__title) {
-  padding: 10px 0;
-  color: var(--deep-blue);
-  font-weight: bold;
-  font-size: 16px;
-}
-
-/* 整个菜单的背景色 */
-.custom-menu {
-  background-color: var(--gray) !important;
+.el-menu-item.is-active {
+  background-color: #007bff; /* 选中项背景颜色 */
+  color: white; /* 选中项字体颜色 */
+  border-radius: 8px; /* 圆角 */
 }
 </style>

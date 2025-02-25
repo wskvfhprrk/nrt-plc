@@ -1,10 +1,12 @@
 package com.jc.service.impl;
 
+import com.jc.config.IpConfig;
 import com.jc.config.Result;
 import com.jc.entity.MachineStatus;
 import com.jc.entity.InputPoint;
 import com.jc.entity.OutputPoint;
 import com.jc.entity.Alert;
+import com.jc.netty.server.NettyServerHandler;
 import com.jc.service.MachineService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,13 @@ import org.slf4j.LoggerFactory;
 public class MachineServiceImpl implements MachineService {
     private MachineStatus currentSettings; // 存储当前设置
     private List<Alert> alerts = new ArrayList<>(); // 存储报警信息
+
+    @Autowired
+    private Plc plc;
+    @Autowired
+    private NettyServerHandler nettyServerHandler;
+    @Autowired
+    private IpConfig ipConfig;
 
     // 初始化默认设置
     public MachineServiceImpl() {
@@ -260,4 +269,14 @@ public class MachineServiceImpl implements MachineService {
             return Result.error(e.getMessage());
         }
     }
-} 
+
+    public void sendDataToPLC(String data) {
+        // 确保数据以 00 开头，以 FF 结尾
+        if (!data.startsWith("00") || !data.endsWith("FF")) {
+            throw new IllegalArgumentException("数据包格式不正确");
+        }
+        // 发送数据到 PLC 的逻辑
+        nettyServerHandler.sendMessageToClient(ipConfig.getPlc(), data, true);
+    }
+
+}

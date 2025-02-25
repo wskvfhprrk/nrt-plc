@@ -1,7 +1,7 @@
 <template>
   <div class="machine-settings-container">
       
-    <el-form :model="form" label-width="200px" class="settings-form">
+    <el-form :model="form" label-width="180px" class="settings-form">
       <h4>机器设置</h4>  
       
       <!-- 自动清洗 -->
@@ -204,6 +204,10 @@ export default {
 }
 
 .settings-form {
-  width: 50%; /* 设置宽度为当前的一半 */
+  width: 80%; /* 设置宽度为当前的一半 */
+}
+
+.settings-form h4 {
+  margin-top: 100px;
 }
 </style> 

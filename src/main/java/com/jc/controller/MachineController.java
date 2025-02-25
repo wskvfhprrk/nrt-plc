@@ -64,4 +64,22 @@ public class MachineController {
             return Result.error("清除报警信息失败: " + e.getMessage());
         }
     }
+
+    // 处理上位机写入数据请求
+    @PostMapping("/writeData")
+    public ResponseEntity<String> writeData(@RequestBody String data) {
+        try {
+            machineService.sendDataToPLC(data);
+            return ResponseEntity.ok("数据成功写入 PLC");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // 处理上位机读取数据请求
+    @GetMapping("/readData")
+    public ResponseEntity<String> readData() {
+        String data = machineService.readDataFromPLC();
+        return ResponseEntity.ok(data);
+    }
 }
