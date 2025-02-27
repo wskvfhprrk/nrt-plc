@@ -54,6 +54,28 @@
       </el-row>
     </el-card>
 
+    <!-- 人工区域状态 -->
+    <el-card class="manual-status-card">      
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <div class="status-item">
+            <span class="label">自动清洗：</span>
+            <el-tag :type="machineData.robotStatus.autoClean ? 'success' : 'info'">
+              {{ machineData.robotStatus.autoClean ? '已开启' : '已关闭' }}
+            </el-tag>
+          </div>
+        </el-col>
+        <el-col :span="12">
+          <div class="status-item">
+            <span class="label">夜间模式：</span>
+            <el-tag :type="machineData.robotStatus.nightMode ? 'success' : 'info'">
+              {{ machineData.robotStatus.nightMode ? '已开启' : '已关闭' }}
+            </el-tag>
+          </div>
+        </el-col>
+      </el-row>
+    </el-card>
+
     <!-- 电箱状态区域 -->
     <el-card class="electrical-box-card">
       <el-row :gutter="20">
@@ -195,11 +217,14 @@ export default {
         },
         robotStatus: {
           robotStatus: '未知',
-          currentProgram: ''
+          currentProgram: '',
+          autoClean: false,
+          nightMode: false
         },
         electricalBoxStatus: {
           temperature: 0,
-          humidity: 0
+          humidity: 0,
+          status: 0
         },
         inputPoints: [],
         outputPoints: [],
@@ -259,22 +284,26 @@ export default {
       }
     },
     getElectricalBoxStatus() {
-      if (this.machineData.electricalBoxStatus.temperature > 40) {
-        return '过热';
+      const status = this.machineData.electricalBoxStatus.status;
+      switch (status) {
+        case 0:
+          return '正常';
+        case 1:
+          return '过热';
+        case 2:
+          return '过潮';
+        default:
+          return '未知';
       }
-      if (this.machineData.electricalBoxStatus.humidity > 90) {
-        return '过潮';
-      }
-      return '正常';
     },
     getElectricalBoxStatusType() {
-      const status = this.getElectricalBoxStatus();
+      const status = this.machineData.electricalBoxStatus.status;
       switch (status) {
-        case '过热':
-        case '过潮':
-          return 'danger';
-        case '正常':
+        case 0:
           return 'success';
+        case 1:
+        case 2:
+          return 'danger';
         default:
           return 'info';
       }
@@ -319,12 +348,15 @@ export default {
           robotStatus: {
             ...this.machineData.robotStatus,
             robotStatus: this.translateStatus(backendData.robotStatus) || '待实现',
-            currentProgram: backendData.currentProgram || '待实现'
+            currentProgram: backendData.currentProgram || '待实现',
+            autoClean: backendData.autoClean || false,
+            nightMode: backendData.nightMode || false
           },
           electricalBoxStatus: {
             ...this.machineData.electricalBoxStatus,
-            humidity: backendData.electricalBoxTemp || 0,
-            temperature: backendData.electricalBoxHumidity || 0
+            temperature: backendData.electricalBoxTemp || 0,
+            humidity: backendData.electricalBoxHumidity || 0,
+            status: backendData.electricalBoxStatus || 0
           },
           inputPoints: backendData.inputPoints || [],
           outputPoints: backendData.outputPoints || [],
@@ -429,6 +461,7 @@ export default {
 
 .status-card,
 .robot-status-card,
+.manual-status-card,
 .electrical-box-card,
 .components-card,
 .alerts-card {

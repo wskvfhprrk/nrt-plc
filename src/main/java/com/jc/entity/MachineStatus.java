@@ -4,12 +4,9 @@ import lombok.Data;
 
 @Data
 public class MachineStatus {
-    private int minTemp;          // 最小温度
-    private int maxTemp;          // 最大温度
     private int weight;             // 菜的重量
     private String status;         // 机器状态
     private String soupVolume;        // 汤的温度
-//    private int cleaningInterval;   // 清洗间隔
     private int runTime;       // 机器运行时间
     private boolean autoClean;     // 自动清洗
     private boolean nightMode;     // 夜间模式
@@ -18,11 +15,15 @@ public class MachineStatus {
     private String currentProgram;  // 当前程序
     private String electricalBoxTemp; // 电箱温度
     private String electricalBoxHumidity; // 电箱湿度
+    private int electricalBoxStatus; // 电箱状态
+
+    // 添加设置电箱状态的方法
+    public void setElectricalBoxStatus(int status) {
+        this.electricalBoxStatus = status;
+    }
 
     // 构造函数，赋予初始值（模拟数值）
-    public MachineStatus() {
-        this.minTemp = 75;
-        this.maxTemp = 90;
+    public MachineStatus() {        
         this.weight = 120;
         this.soupVolume = "350.0";
         this.runTime = 4;
@@ -34,5 +35,6 @@ public class MachineStatus {
         this.currentProgram = "stopped"; // 假设的初始程序
         this.electricalBoxTemp = "25"; // 假设的电箱温度
         this.electricalBoxHumidity = "50"; // 假设的电箱湿度
+        this.electricalBoxStatus = 0; // 初始化电箱状态
     }
 } 

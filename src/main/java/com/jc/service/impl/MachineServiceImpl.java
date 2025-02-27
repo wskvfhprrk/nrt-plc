@@ -37,8 +37,6 @@ public class MachineServiceImpl implements MachineService {
     // 构造函数：初始化默认设置
     public MachineServiceImpl() {
         currentSettings = new MachineStatus();
-        currentSettings.setMinTemp(75);      // 设置最低温度
-        currentSettings.setMaxTemp(90);      // 设置最高温度
         currentSettings.setWeight(120); // 设置面条重量
         currentSettings.setSoupVolume("35");   // 设置汤量
         currentSettings.setRunTime(4);    // 设置烹饪时间
@@ -64,14 +62,8 @@ public class MachineServiceImpl implements MachineService {
         }
     }
 
+    // 验证设置参数的方法
     private void validateSettings(MachineStatus settings) {
-        if (settings.getMinTemp() < 60 || settings.getMaxTemp() > 100) {
-            throw new IllegalArgumentException("温度设置超出范围");
-        }
-
-        if (settings.getMinTemp() >= settings.getMaxTemp()) {
-            throw new IllegalArgumentException("最低温度必须小于最高温度");
-        }
 
         if (settings.getWeight() < 50 || settings.getWeight() > 200) {
             throw new IllegalArgumentException("面条重量超出范围");
@@ -109,8 +101,6 @@ public class MachineServiceImpl implements MachineService {
     // 获取默认设置
     private MachineStatus getDefaultSettings() {
         MachineStatus defaultSettings = new MachineStatus();
-        defaultSettings.setMinTemp(80);        // 默认最低温度
-        defaultSettings.setMaxTemp(95);        // 默认最高温度
         defaultSettings.setWeight(100);  // 默认面条重量
         defaultSettings.setSoupVolume("30");    // 默认汤量
         defaultSettings.setRunTime(3);     // 默认烹饪时间
@@ -143,12 +133,15 @@ public class MachineServiceImpl implements MachineService {
         // 将当前设置的相关信息添加到状态中
         status.put("machineStatus", settings.getStatus());
         status.put("temperature", settings.getCurrentTemperature()); // 使用当前温度
-        status.put("weight", settings.getWeight());//重量
+        status.put("weight", settings.getWeight()); // 重量
         status.put("runtime", settings.getRunTime());
         status.put("robotStatus", settings.getRobotStatus()); // 使用机器人状态
         status.put("currentProgram", settings.getCurrentProgram()); // 使用当前程序
         status.put("electricalBoxTemp", settings.getElectricalBoxTemp()); // 使用电箱温度
         status.put("electricalBoxHumidity", settings.getElectricalBoxHumidity()); // 使用电箱湿度
+        status.put("electricalBoxStatus", settings.getElectricalBoxStatus()); // 使用电箱状态
+        status.put("autoClean", settings.isAutoClean()); // 自动清洗
+        status.put("nightMode", settings.isNightMode()); // 夜间模式
 
         // 添加设备输入点、输出点和报警信息
         status.put("inputPoints", getInputPoints());
@@ -197,10 +190,10 @@ public class MachineServiceImpl implements MachineService {
             int weight = Integer.parseInt(data[26], 16);
             settings.setWeight(weight);
             
-            // 4. 解析机器人状态 (VB16-17)
+            // 4. 解析机器人状态 (VB16)
             int robotStatusBinary = Integer.parseInt(data[16], 16);
             settings.setRobotStatus(parseRobotStatus(robotStatusBinary));
-            
+
             // 5. 解析当前机器人运行程序状态 (VB14)
             int programNumber = Integer.parseInt(data[14], 16);
             String currentProgram = "";
@@ -264,14 +257,17 @@ public class MachineServiceImpl implements MachineService {
                     settings.setStatus("未知的运行状态值");
             }
             
-            // 设置清洗和夜间模式
+            // 7. 解析电箱状态 (VB17)
+            int electricalBoxStatus = Integer.parseInt(data[17], 16);
+            settings.setElectricalBoxStatus(electricalBoxStatus); // 假设你在 MachineStatus 中有这个方法
+            
+            // 8. 设置清洗和夜间模式
             boolean autoClean = Integer.parseInt(data[52], 16)==0?false:true;
             boolean nightMode = Integer.parseInt(data[53], 16)==0?false:true;
             settings.setAutoClean(autoClean);
             settings.setNightMode(nightMode);
             
-
-            // 7. 检查故障码并记录报警 (VB50)
+            // 9. 检查故障码并记录报警 (VB50)
             int errorCode = Integer.parseInt(data[50], 16);
             if (errorCode != 0) {
                 Alert alert = new Alert(
