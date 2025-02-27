@@ -75,11 +75,4 @@ public class MachineController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-
-    // 处理上位机读取数据请求
-    @GetMapping("/readData")
-    public ResponseEntity<String> readData() {
-        String data = machineService.readDataFromPLC();
-        return ResponseEntity.ok(data);
-    }
 }

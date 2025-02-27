@@ -279,18 +279,32 @@ export default {
           return 'info';
       }
     },
+    formatRuntime(hours) {
+      if (!hours && hours !== 0) return '未知';
+      
+      const days = Math.floor(hours / 24);
+      const remainingHours = Math.floor(hours % 24);
+      
+      if (days > 0) {
+        return `${days}天${remainingHours}小时`;
+      }
+      return `${remainingHours}小时`;
+    },
     async fetchMachineStatus() {
       try {
         const response = await fetch('/machines/status');
         const result = await response.json();
-        
-        // 添加数据兼容处理
         const backendData = result.data || {};
         
-        // 处理报警信息，格式化时间
+        // 添加调试日志
+        console.log('后端原始数据:', {
+          temp: backendData.electricalBoxTemp,
+          humidity: backendData.electricalBoxHumidity
+        });
+
         const alerts = (backendData.alerts || []).map(alert => ({
           ...alert,
-          time: this.formatDateTime(alert.timestamp) // 改用 timestamp 而不是 time
+          time: this.formatDateTime(alert.timestamp)
         }));
 
         this.machineData = {
@@ -299,27 +313,29 @@ export default {
             ...this.machineData.basicStatus,
             machineStatus: backendData.machineStatus || '未知',
             currentTemperature: backendData.temperature || 0,
-            currentWeight: backendData.noodleWeight || 0,
-            uptime: `${backendData.cleaningInterval || 0}分钟`
+            currentWeight: backendData.weight || 0,
+            uptime: this.formatRuntime(backendData.runtime)
           },
           robotStatus: {
             ...this.machineData.robotStatus,
-            robotStatus: this.translateStatus(backendData.status) || '待实现',
+            robotStatus: this.translateStatus(backendData.robotStatus) || '待实现',
             currentProgram: backendData.currentProgram || '待实现'
           },
           electricalBoxStatus: {
             ...this.machineData.electricalBoxStatus,
-            temperature: backendData.temperature || 0,
-            humidity: backendData.humidity || 0
+            humidity: backendData.electricalBoxTemp || 0,
+            temperature: backendData.electricalBoxHumidity || 0
           },
           inputPoints: backendData.inputPoints || [],
           outputPoints: backendData.outputPoints || [],
-          alerts: alerts // 使用处理后的报警数据
+          alerts: alerts
         };
+
+        // 添加调试日志
+        console.log('更新后的数据:', this.machineData.electricalBoxStatus);
 
       } catch (error) {
         console.error('获取机器状态失败:', error);
-        // 可添加重试机制
       }
     },
     translateStatus(status) {
