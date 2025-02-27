@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class RedisController {
 
     @Autowired
-    private RedisTemplate redisTemplate;
+    private RedisTemplate<String, String> redisTemplate;
 
     //访问地址：http://localhost:8080/readAndWriteRedis?index=22&newValue=FF
     @GetMapping("readAndWriteRedis")
