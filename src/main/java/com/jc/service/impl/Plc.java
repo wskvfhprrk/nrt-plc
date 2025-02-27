@@ -67,5 +67,43 @@ public class Plc implements DeviceHandler {
         
     }
 
+    /**
+     * 获取PLC输出点的状态
+     * @param pointId PLC点位ID（例如：V7.0, V7.1等）
+     * @return 返回"打开"或"关闭"
+     */
+    public String getOutputStatus(String pointId) {
+        // 从Redis获取PLC数据
+        String plcData = (String) redisTemplate.opsForValue().get("plc:data");
+        if (plcData == null) {
+            log.warn("未能从Redis获取PLC数据");
+            return "未知";
+        }
+
+        // 解析点位ID，例如"V7.0"
+        String[] parts = pointId.substring(1).split("\\.");
+        int byteIndex = Integer.parseInt(parts[0]);
+        int bitPosition = Integer.parseInt(parts[1]);
+
+        // 将PLC数据分割成字节数组
+        String[] dataBytes = plcData.split(" ");
+        
+        // 检查索引是否有效
+        if (byteIndex >= dataBytes.length) {
+            log.warn("无效的字节索引：{}", byteIndex);
+            return "未知";
+        }
+
+        try {
+            // 将十六进制字符串转换为整数
+            int value = Integer.parseInt(dataBytes[byteIndex], 16);
+            // 检查特定位的状态
+            boolean isOn = ((value >> bitPosition) & 1) == 1;
+            return isOn ? "打开" : "关闭";
+        } catch (NumberFormatException e) {
+            log.error("解析PLC数据失败：{}", e.getMessage());
+            return "未知";
+        }
+    }
 
 }
