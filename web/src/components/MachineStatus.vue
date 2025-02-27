@@ -109,22 +109,24 @@
         <el-table :data="machineData.inputPoints.slice(0, Math.ceil(machineData.inputPoints.length / 2))" style="width: 48%">
           <el-table-column prop="name" label="名称" />
           <el-table-column prop="pointName" label="点位" />
-          <el-table-column prop="status" label="状态值">
+          <el-table-column prop="status" label="状态">
             <template #default="{ row }">
-              <el-tag :type="row.status === '打开' ? 'success' : 'danger'">
-                {{ row.status }}
-              </el-tag>
+              <el-icon :size="20" :color="row.status === '打开' ? 'red' : 'black'">
+                <Sunrise v-if="row.status === '打开'" />
+                <Sunset v-else />
+              </el-icon>
             </template>
           </el-table-column>
         </el-table>
         <el-table :data="machineData.inputPoints.slice(Math.ceil(machineData.inputPoints.length / 2))" style="width: 48%">
           <el-table-column prop="name" label="名称" />
           <el-table-column prop="pointName" label="点位" />
-          <el-table-column prop="status" label="状态值">
+          <el-table-column prop="status" label="状态">
             <template #default="{ row }">
-              <el-tag :type="row.status === '打开' ? 'success' : 'danger'">
-                {{ row.status }}
-              </el-tag>
+              <el-icon :size="20" :color="row.status === '打开' ? 'red' : 'black'">
+                <Sunrise v-if="row.status === '打开'" />
+                <Sunset v-else />
+              </el-icon>
             </template>
           </el-table-column>
         </el-table>
@@ -139,22 +141,24 @@
         <el-table :data="machineData.outputPoints.slice(0, Math.ceil(machineData.outputPoints.length / 2))" style="width: 48%">
           <el-table-column prop="name" label="名称" />
           <el-table-column prop="pointName" label="点位" />
-          <el-table-column prop="status" label="状态值">
+          <el-table-column prop="status" label="状态">
             <template #default="{ row }">
-              <el-tag :type="row.status === '打开' ? 'success' : 'danger'">
-                {{ row.status }}
-              </el-tag>
+              <el-icon :size="20" :color="row.status === '打开' ? 'red' : 'black'">
+                <Sunrise v-if="row.status === '打开'" />
+                <Sunset v-else />
+              </el-icon>
             </template>
           </el-table-column>
         </el-table>
         <el-table :data="machineData.outputPoints.slice(Math.ceil(machineData.outputPoints.length / 2))" style="width: 48%">
           <el-table-column prop="name" label="名称" />
           <el-table-column prop="pointName" label="点位" />
-          <el-table-column prop="status" label="状态值">
+          <el-table-column prop="status" label="状态">
             <template #default="{ row }">
-              <el-tag :type="row.status === '打开' ? 'success' : 'danger'">
-                {{ row.status }}
-              </el-tag>
+              <el-icon :size="20" :color="row.status === '打开' ? 'red' : 'black'">
+                <Sunrise v-if="row.status === '打开'" />
+                <Sunset v-else />
+              </el-icon>
             </template>
           </el-table-column>
         </el-table>
@@ -203,8 +207,14 @@
 </template>
 
 <script>
+import { Sunrise, Sunset } from '@element-plus/icons-vue'
+
 export default {
   name: 'MachineStatus',
+  components: {
+    Sunrise,
+    Sunset
+  },
   data() {
     return {
       currentTime: '',
@@ -501,5 +511,9 @@ h4 {
 
 .alerts-card h4 {
   margin: 0;
+}
+
+.el-icon {
+  vertical-align: middle;
 }
 </style> 

@@ -490,7 +490,7 @@ public class MachineServiceImpl implements MachineService {
         map.put("V1.5", "粉丝气缸5");
         map.put("V1.6", "粉丝气缸6");
         map.put("V1.7", "出碗检测");
-        
+
         // V2.x 系列
         map.put("V2.0", "是否有碗");
         map.put("V2.1", "碗报警");
@@ -500,17 +500,17 @@ public class MachineServiceImpl implements MachineService {
         map.put("V2.5", "出餐口气缸");
         map.put("V2.6", "推碗气缸");
         map.put("V2.7", "门锁1");
-        map.put("V2.8", "门锁2");
-        
+
         // V3.x 系列
-        map.put("V3.0", "门锁3");
-        map.put("V3.1", "门锁4");
-        map.put("V3.2", "门锁5");
-        map.put("V3.3", "门锁6");
-        map.put("V3.4", "门锁7");
+        map.put("V3.0", "门锁2");
+        map.put("V3.1", "门锁3");
+        map.put("V3.2", "门锁4");
+        map.put("V3.3", "门锁5");
+        map.put("V3.4", "门锁6");
+        map.put("V3.5", "门锁7");
         map.put("V3.6", "夹手气缸");
         map.put("V3.7", "旋转气缸");
-        
+
         // V4.x 系列
         map.put("V4.0", "切网机数量");
         map.put("V4.1", "切肉机是否有肉");
@@ -520,13 +520,17 @@ public class MachineServiceImpl implements MachineService {
         map.put("V4.5", "水桶报警");
         map.put("V4.6", "水桶最低位");
         map.put("V4.7", "废水桶满");
-        
+
         // V5.x 系列
-        map.put("V5.1", "称重气缸");
-        map.put("V5.2", "气压开关");
-        map.put("V5.3", "备用1");
-        map.put("V5.4", "备用2");
-        
+        map.put("V5.0", "称重气缸");
+        map.put("V5.1", "气压开关");
+        map.put("V5.2", "备用1");
+        map.put("V5.3", "备用2");
+        map.put("V5.4", "备用3");
+        map.put("V5.5", "备用4");
+        map.put("V5.6", "备用5");
+        map.put("V5.7", "备用6");
+
         return map;
     }
 
@@ -565,44 +569,53 @@ public class MachineServiceImpl implements MachineService {
         Map<String, String> map = new LinkedHashMap<>();
         
         // V7.x 系列
-        map.put("V7.0", "粉丝仓气缸1");
-        map.put("V7.1", "粉丝仓气缸2");
-        map.put("V7.2", "粉丝仓气缸3");
-        map.put("V7.3", "粉丝仓气缸4");
-        map.put("V7.4", "粉丝仓气缸5");
-        map.put("V7.5", "粉丝仓气缸6");
-        map.put("V7.6", "做汤机气缸");
-        map.put("V7.7", "出餐口气缸");
+        map.put("V7.1", "机器人开机");
+        map.put("V7.2", "称重盒方向");
+        map.put("V7.3", "称重盒开关");
+        map.put("V7.4", "抽汤机");
+        map.put("V7.5", "抽水泵");
+        map.put("V7.6", "配电箱风扇");
+        map.put("V7.7", "玻璃窗");
         
         // V8.x 系列
-        map.put("V8.0", "推碗气缸");
-        map.put("V8.1", "夹手气缸");
-        map.put("V8.2", "旋转气缸");
-        map.put("V8.3", "切网机气缸");
-        map.put("V8.4", "切肉机气缸");
-        map.put("V8.5", "汤桶加热蒸汽阀");
-        map.put("V8.6", "出汤电磁阀");
-        map.put("V8.7", "消毒蒸汽阀");
+        map.put("V8.0", "旋转气缸");
+        map.put("V8.1", "放碗电机");
+        map.put("V8.2", "震动盘");
+        map.put("V8.3", "柜灯继电器1");
+        map.put("V8.4", "柜灯继电器2");
+        map.put("V8.5", "柜灯继电器3");
+        map.put("V8.6", "抽油烟排气");
+        map.put("V8.7", "粉丝仓气缸1");
         
         // V9.x 系列
-        map.put("V9.0", "备用3");
-        map.put("V9.1", "备用4");
-        map.put("V9.2", "备用5");
-        map.put("V9.3", "备用6");
-        map.put("V9.4", "备用7");
-        map.put("V9.5", "备用8");
-        map.put("V9.6", "备用9");
-        map.put("V9.7", "备用10");
+        map.put("V9.0", "粉丝仓气缸2");
+        map.put("V9.1", "粉丝仓气缸3");
+        map.put("V9.2", "粉丝仓气缸4");
+        map.put("V9.3", "粉丝仓气缸5");
+        map.put("V9.4", "粉丝仓气缸6");
+        map.put("V9.5", "做汤机气缸");
+        map.put("V9.6", "出餐口气缸");
+        map.put("V9.7", "推碗气缸");
         
         // V10.x 系列
-        map.put("V10.0", "门锁1");
-        map.put("V10.1", "门锁2");
-        map.put("V10.2", "门锁3");
-        map.put("V10.3", "门锁4");
-        map.put("V10.4", "门锁5");
-        map.put("V10.5", "门锁6");
-        map.put("V10.6", "门锁7");
-        map.put("V10.7", "备用11");
+        map.put("V10.0", "夹手气缸");
+        map.put("V10.1", "推肉气缸");
+        map.put("V10.2", "称重气缸");
+        map.put("V10.3", "汤桶加热蒸汽阀");
+        map.put("V10.4", "出汤电磁阀");
+        map.put("V10.5", "消毒蒸汽阀");
+        map.put("V10.6", "机器人模式切换");
+        map.put("V10.7", "机器人急停");
+        
+        // V11.x 系列
+        map.put("V11.0", "备用");
+        map.put("V11.1", "门锁1");
+        map.put("V11.2", "门锁2");
+        map.put("V11.3", "门锁3");
+        map.put("V11.4", "门锁4");
+        map.put("V11.5", "门锁5");
+        map.put("V11.6", "门锁6");
+        map.put("V11.7", "门锁7");
         
         return map;
     }
