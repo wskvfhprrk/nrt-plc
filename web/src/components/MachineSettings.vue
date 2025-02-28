@@ -154,12 +154,11 @@ export default {
               ...this.form, // 保留原有默认值
               autoClean: backendData.autoClean,
               nightMode: backendData.nightMode,
-              soupMaxTemperature: backendData.maxTemp,
-              soupMinTemperature: backendData.minTemp,
-              soupQuantity: backendData.soupVolume,
-              // 其他字段保持默认值
-              electricalBoxFanTemp: backendData.electricalBoxTemp,
-              electricalBoxFanHumidity: backendData.electricalBoxHumidity
+              soupMaxTemperature: backendData.soupMaxTemperature,
+              soupMinTemperature: backendData.soupMinTemperature,
+              soupQuantity: backendData.soupQuantity,
+              electricalBoxFanTemp: backendData.electricalBoxFanTemp,
+              electricalBoxFanHumidity: backendData.electricalBoxFanHumidity
             };
           } else {
             this.$message.error(response.data.message);

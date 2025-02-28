@@ -10,5 +10,5 @@ public interface MachineService {
     Map<String, Object> getMachineStatus();
     Result resetAlert(int id);
     Result clearAllAlerts();
-    void sendDataToPLC(String data);
+    Result sendDataToPLC(String data);
 }

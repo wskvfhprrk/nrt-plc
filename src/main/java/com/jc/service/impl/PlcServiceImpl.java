@@ -22,7 +22,7 @@ public class PlcServiceImpl implements DeviceHandler {
     private static final String PLC_DATA_END = "FF";
     private static final String PLC_DATA_KEY = "plc:data";
     private static final String PLC_SEND_DATA_KEY = "plc:send:data";
-    private static final String VB150_KEY = "VB150";
+    public static final String VB150_KEY = "VB150";
 
     /**
      * 处理消息
@@ -107,15 +107,6 @@ public class PlcServiceImpl implements DeviceHandler {
     }
 
 
-    // 解析PLC数据
-    private String parsePlcData(String plcData) {
-        if (plcData.startsWith(PLC_DATA_START) && plcData.endsWith(PLC_DATA_END)) {
-            return plcData.substring(2, plcData.length() - 2); // 去掉开头和结尾的检验位
-        } else {
-            log.warn("PLC数据格式不正确");
-            return "未知";
-        }
-    }
 
 
     // 更新发送给PLC的数据

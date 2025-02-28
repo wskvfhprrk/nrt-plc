@@ -38,7 +38,7 @@ public class MachineServiceImpl implements MachineService {
     private static final String STATUS_STANDBY_MODE = "待机模式";
     private static final String STATUS_STOP = "停止运行";
     private static final String STATUS_UNKNOWN = "未知的运行状态值";
-    
+
     // 字段定义
     private MachineStatus currentSettings;
     private final List<Alert> alerts = new ArrayList<>();
@@ -46,10 +46,6 @@ public class MachineServiceImpl implements MachineService {
     // 依赖注入
     @Autowired
     private PlcServiceImpl plcServiceImpl;
-    @Autowired
-    private NettyServerHandler nettyServerHandler;
-    @Autowired
-    private IpConfig ipConfig;
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
 
@@ -149,8 +145,8 @@ public class MachineServiceImpl implements MachineService {
     private boolean isValidStatus(String status) {
         return status != null && (
                 status.equals(STATUS_RUNNING) ||
-                status.equals(STATUS_STANDBY) ||
-                status.equals(STATUS_STOPPED)
+                        status.equals(STATUS_STANDBY) ||
+                        status.equals(STATUS_STOPPED)
         );
     }
 
@@ -178,33 +174,33 @@ public class MachineServiceImpl implements MachineService {
     @Override
     public Map<String, Object> getMachineStatus() {
         Map<String, Object> status = new HashMap<>();
-        
+
         // 从Redis获取PLC数据
         String plcData = getPlcDataFromRedis();
         if (plcData == null) {
             log.warn("未能从Redis获取PLC数据");
             return status;
         }
-        
+
         // 解析PLC数据并更新当前设置
         parsePlcData(plcData);
-        
+
         // 获取当前设置
         MachineStatus settings = getSettings();
-        
+
         // 填充状态信息
         populateStatusMap(status, settings);
-        
+
         return status;
     }
-    
+
     /**
      * 从Redis获取PLC数据
      */
     private String getPlcDataFromRedis() {
         return redisTemplate.opsForValue().get(REDIS_PLC_DATA_KEY);
     }
-    
+
     /**
      * 填充状态Map
      */
@@ -223,17 +219,17 @@ public class MachineServiceImpl implements MachineService {
         status.put("electricalBoxStatus", settings.getElectricalBoxStatus());
         status.put("autoClean", settings.isAutoClean());
         status.put("nightMode", settings.isNightMode());
-        
+
         // 获取并添加设备输入点、输出点和报警信息
         List<InputPoint> inputPoints = getInputPoints();
         List<OutputPoint> outputPoints = getOutputPoints();
         List<Alert> currentAlerts = getAlerts();
-        
+
         // 记录日志
         log.debug("获取到输入点数量: {}", inputPoints.size());
         log.debug("获取到输出点数量: {}", outputPoints.size());
         log.debug("获取到报警数量: {}", currentAlerts.size());
-        
+
         // 添加到状态Map
         status.put("inputPoints", inputPoints);
         status.put("outputPoints", outputPoints);
@@ -247,14 +243,14 @@ public class MachineServiceImpl implements MachineService {
      */
     private void parsePlcData(String cleanMessage) {
         String[] data = cleanMessage.split(" ");
-        
+
         // 验证数据包格式
         if (!validatePlcDataFormat(data)) {
             return;
         }
-        
+
         MachineStatus settings = new MachineStatus();
-        
+
         try {
             parseTemperatureData(data, settings);
             parseElectricalBoxData(data, settings);
@@ -266,14 +262,14 @@ public class MachineServiceImpl implements MachineService {
             parseElectricalBoxStatus(data, settings);
             parseCleanAndNightMode(data, settings);
             checkErrorCode(data);
-            
+
             // 更新当前设置
             this.currentSettings = settings;
         } catch (Exception e) {
             log.error("解析PLC数据失败: {}", e.getMessage(), e);
         }
     }
-    
+
     /**
      * 验证PLC数据格式
      */
@@ -284,68 +280,68 @@ public class MachineServiceImpl implements MachineService {
         }
         return true;
     }
-    
+
     /**
      * 解析温度相关数据
      */
     private void parseTemperatureData(String[] data, MachineStatus settings) {
         if (data.length <= 19) return;
-        
+
         int soupTemp = parseSignedHexValue(data[18] + data[19]);
         settings.setCurrentTemperature(String.valueOf(soupTemp / 10.0));
         settings.setSoupVolume(String.valueOf(soupTemp));
     }
-    
+
     /**
      * 解析电箱温湿度数据
      */
     private void parseElectricalBoxData(String[] data, MachineStatus settings) {
         if (data.length <= 23) return;
-        
+
         String boxHumidity = String.valueOf(Integer.parseInt(data[20] + data[21], 16));
         int boxTemp = parseSignedHexValue(data[22] + data[23]);
-        
+
         settings.setElectricalBoxHumidity(String.valueOf(boxTemp / 10.0));
         settings.setElectricalBoxTemp(boxHumidity);
     }
-    
+
     /**
      * 解析重量数据
      */
     private void parseWeightData(String[] data, MachineStatus settings) {
         if (data.length <= 26) return;
-        
+
         int weight = Integer.parseInt(data[26], 16);
         settings.setWeight(weight);
     }
-    
+
     /**
      * 解析机器人状态
      */
     private void parseRobotStatus(String[] data, MachineStatus settings) {
         if (data.length <= 16) return;
-        
+
         int robotStatusBinary = Integer.parseInt(data[16], 16);
         settings.setRobotStatus(getRobotStatusDescription(robotStatusBinary));
     }
-    
+
     /**
      * 解析程序状态
      */
     private void parseProgramStatus(String[] data, MachineStatus settings) {
         if (data.length <= 33) return;
-        
+
         int programNumber = Integer.parseInt(data[14], 16);
         settings.setCurrentProgram(getProgramDescription(programNumber));
         settings.setRunTime(Integer.parseInt(data[32] + data[33], 16));
     }
-    
+
     /**
      * 解析运行状态
      */
     private void parseRunningStatus(String[] data, MachineStatus settings) {
         if (data.length <= 15) return;
-        
+
         int runningStatus = Integer.parseInt(data[15], 16);
         switch (runningStatus) {
             case 1:
@@ -362,58 +358,58 @@ public class MachineServiceImpl implements MachineService {
                 settings.setStatus(STATUS_UNKNOWN);
         }
     }
-    
+
     /**
      * 解析电箱状态
      */
     private void parseElectricalBoxStatus(String[] data, MachineStatus settings) {
         if (data.length <= 17) return;
-        
+
         int electricalBoxStatus = Integer.parseInt(data[17], 16);
         settings.setElectricalBoxStatus(electricalBoxStatus);
     }
-    
+
     /**
      * 解析清洗和夜间模式
      */
     private void parseCleanAndNightMode(String[] data, MachineStatus settings) {
         if (data.length <= 53) return;
-        
+
         boolean autoClean = Integer.parseInt(data[52], 16) != 0;
         boolean nightMode = Integer.parseInt(data[53], 16) != 0;
         settings.setAutoClean(autoClean);
         settings.setNightMode(nightMode);
     }
-    
+
     /**
      * 检查错误代码
      */
     private void checkErrorCode(String[] data) {
         if (data.length <= 50) return;
-        
+
         int errorCode = Integer.parseInt(data[50], 16);
         if (errorCode != 0) {
             addErrorAlert(errorCode);
         }
     }
-    
+
     /**
      * 添加错误报警
      */
     private void addErrorAlert(int errorCode) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Alert alert = new Alert(
-            alerts.size() + 1,
-            sdf.format(new Date()),
-            "一级",
-            "故障码: " + errorCode,
-            false
+                alerts.size() + 1,
+                sdf.format(new Date()),
+                "一级",
+                "故障码: " + errorCode,
+                false
         );
         alerts.add(alert);
         // 同步到Redis
         syncAlertsToRedis();
     }
-    
+
     /**
      * 解析有符号十六进制值
      */
@@ -424,38 +420,56 @@ public class MachineServiceImpl implements MachineService {
         }
         return value;
     }
-    
+
     /**
      * 获取机器人状态描述
      */
     private String getRobotStatusDescription(int status) {
         switch (status) {
-            case 0: return "未上电";
-            case 1: return "未使能";
-            case 2: return "空闲";
-            case 3: return "程序运行状态";
-            case 4: return "暂停状态";
-            case 5: return "程序结束";
-            case 6: return "故障";
-            case 7: return "机器人运动中";
-            default: return "机器人未执行命令";
+            case 0:
+                return "未上电";
+            case 1:
+                return "未使能";
+            case 2:
+                return "空闲";
+            case 3:
+                return "程序运行状态";
+            case 4:
+                return "暂停状态";
+            case 5:
+                return "程序结束";
+            case 6:
+                return "故障";
+            case 7:
+                return "机器人运动中";
+            default:
+                return "机器人未执行命令";
         }
     }
-    
+
     /**
      * 获取程序描述
      */
     private String getProgramDescription(int programNumber) {
         switch (programNumber) {
-            case 1: return "粉丝仓1";
-            case 2: return "粉丝仓2";
-            case 3: return "粉丝仓3";
-            case 4: return "粉丝仓4";
-            case 5: return "粉丝仓5";
-            case 6: return "粉丝仓6";
-            case 7: return "放碗子加热";
-            case 8: return "取碗";
-            case 9: return "取汤";
+            case 1:
+                return "粉丝仓1";
+            case 2:
+                return "粉丝仓2";
+            case 3:
+                return "粉丝仓3";
+            case 4:
+                return "粉丝仓4";
+            case 5:
+                return "粉丝仓5";
+            case 6:
+                return "粉丝仓6";
+            case 7:
+                return "放碗子加热";
+            case 8:
+                return "取碗";
+            case 9:
+                return "取汤";
             case 10:
             case 11:
             case 12:
@@ -469,18 +483,18 @@ public class MachineServiceImpl implements MachineService {
                 return "未知程序";
         }
     }
-    
+
     /**
      * 16进制字符串转二进制字符串
      */
     private String hexToBinary(String hex) {
         int decimal = Integer.parseInt(hex, 16);
-        String binary = Integer.toBinaryString(decimal);
+        StringBuilder binary = new StringBuilder(Integer.toBinaryString(decimal));
         // 补齐8位
         while (binary.length() < 8) {
-            binary = "0" + binary;
+            binary.insert(0, "0");
         }
-        return binary;
+        return binary.toString();
     }
 
     /**
@@ -488,17 +502,17 @@ public class MachineServiceImpl implements MachineService {
      */
     private void parseRobotModeAndEmergencyStop(String[] data, MachineStatus settings) {
         if (data.length <= 10) return;
-        
+
         // 假设V10.6是机器人模式，V10.7是机器人急停
         String robotModeBit = String.valueOf(hexToBinary(data[10]).charAt(6));
         String emergencyStopBit = String.valueOf(hexToBinary(data[10]).charAt(7));
-        
+
         // 设置机器人模式
         settings.setRobotMode(robotModeBit.equals("1") ? "自动" : "手动");
-        
+
         // 设置急停状态
         settings.setRobotEmergencyStop(emergencyStopBit.equals("1") ? "急停" : "正常工作");
-        
+
         log.debug("机器人模式: {}, 急停状态: {}", settings.getRobotMode(), settings.getRobotEmergencyStop());
     }
 
@@ -510,34 +524,30 @@ public class MachineServiceImpl implements MachineService {
     public List<InputPoint> getInputPoints() {
         List<InputPoint> inputPoints = new ArrayList<>();
         Map<String, String> inputPointMap = getInputPointMap();
-        
+
         try {
             for (Map.Entry<String, String> entry : inputPointMap.entrySet()) {
                 String pointId = entry.getKey();
                 String name = entry.getValue();
                 String status = getPlcStatus(pointId);
-                
-                if (status != null) {
-                    InputPoint point = new InputPoint(name, pointId, status);
-                    inputPoints.add(point);
-                    log.debug("添加输入点: {}, 状态: {}", name, status);
-                } else {
-                    log.warn("无法获取输入点状态: {}", pointId);
-                }
+
+                InputPoint point = new InputPoint(name, pointId, status);
+                inputPoints.add(point);
+                log.debug("添加输入点: {}, 状态: {}", name, status);
             }
         } catch (Exception e) {
             log.error("获取输入点列表失败: {}", e.getMessage(), e);
         }
-        
+
         return inputPoints;
     }
-    
+
     /**
      * 获取输入点映射表
      */
     private Map<String, String> getInputPointMap() {
         Map<String, String> map = new LinkedHashMap<>();
-        
+
         // V1.x 系列
         map.put("V1.0", "粉丝到位传感器");
         map.put("V1.1", "粉丝气缸1");
@@ -596,13 +606,13 @@ public class MachineServiceImpl implements MachineService {
     public List<OutputPoint> getOutputPoints() {
         List<OutputPoint> outputPoints = new ArrayList<>();
         Map<String, String> outputPointMap = getOutputPointMap();
-        
+
         try {
             for (Map.Entry<String, String> entry : outputPointMap.entrySet()) {
                 String pointId = entry.getKey();
                 String name = entry.getValue();
                 String status = getPlcStatus(pointId);
-                
+
                 if (status != null) {
                     OutputPoint point = new OutputPoint(name, pointId, status);
                     outputPoints.add(point);
@@ -614,16 +624,16 @@ public class MachineServiceImpl implements MachineService {
         } catch (Exception e) {
             log.error("获取输出点列表失败: {}", e.getMessage(), e);
         }
-        
+
         return outputPoints;
     }
-    
+
     /**
      * 获取输出点映射表
      */
     private Map<String, String> getOutputPointMap() {
         Map<String, String> map = new LinkedHashMap<>();
-        
+
         // V7.x 系列
         map.put("V7.1", "机器人开机");
         map.put("V7.2", "称重盒方向");
@@ -632,7 +642,7 @@ public class MachineServiceImpl implements MachineService {
         map.put("V7.5", "抽水泵");
         map.put("V7.6", "配电箱风扇");
         map.put("V7.7", "玻璃窗");
-        
+
         // V8.x 系列
         map.put("V8.0", "旋转气缸");
         map.put("V8.1", "放碗电机");
@@ -642,7 +652,7 @@ public class MachineServiceImpl implements MachineService {
         map.put("V8.5", "柜灯继电器3");
         map.put("V8.6", "抽油烟排气");
         map.put("V8.7", "粉丝仓气缸1");
-        
+
         // V9.x 系列
         map.put("V9.0", "粉丝仓气缸2");
         map.put("V9.1", "粉丝仓气缸3");
@@ -652,7 +662,7 @@ public class MachineServiceImpl implements MachineService {
         map.put("V9.5", "做汤机气缸");
         map.put("V9.6", "出餐口气缸");
         map.put("V9.7", "推碗气缸");
-        
+
         // V10.x 系列
         map.put("V10.0", "夹手气缸");
         map.put("V10.1", "推肉气缸");
@@ -662,7 +672,7 @@ public class MachineServiceImpl implements MachineService {
         map.put("V10.5", "消毒蒸汽阀");
         map.put("V10.6", "机器人模式切换");
         map.put("V10.7", "机器人急停");
-        
+
         // V11.x 系列
         map.put("V11.0", "备用");
         map.put("V11.1", "门锁1");
@@ -672,7 +682,7 @@ public class MachineServiceImpl implements MachineService {
         map.put("V11.5", "门锁5");
         map.put("V11.6", "门锁6");
         map.put("V11.7", "门锁7");
-        
+
         return map;
     }
 
@@ -702,14 +712,14 @@ public class MachineServiceImpl implements MachineService {
         try {
             // 先从Redis加载最新的报警信息
             loadAlertsFromRedis();
-            
+
             if (alerts.isEmpty()) {
                 log.debug("当前无报警信息");
             } else {
                 log.debug("当前报警数量: {}", alerts.size());
                 for (Alert alert : alerts) {
-                    log.debug("报警信息: ID={}, 内容={}, 是否已解决={}", 
-                        alert.getId(), alert.getMessage(), alert.isResolved());
+                    log.debug("报警信息: ID={}, 内容={}, 是否已解决={}",
+                            alert.getId(), alert.getMessage(), alert.isResolved());
                 }
             }
             return new ArrayList<>(alerts);
@@ -724,7 +734,7 @@ public class MachineServiceImpl implements MachineService {
         try {
             // 先从Redis加载最新的报警信息
             loadAlertsFromRedis();
-            
+
             boolean found = false;
             for (Alert alert : alerts) {
                 if (alert.getId() != null && alert.getId() == id) {
@@ -734,7 +744,7 @@ public class MachineServiceImpl implements MachineService {
                     break;
                 }
             }
-            
+
             if (found) {
                 // 同步更新后的状态到Redis
                 syncAlertsToRedis();
@@ -765,20 +775,22 @@ public class MachineServiceImpl implements MachineService {
     }
 
     // ==================== PLC通信相关方法 ====================
-
     @Override
-    public void sendDataToPLC(String data) {
-        if (!data.startsWith(PLC_DATA_START) || !data.endsWith(PLC_DATA_END)) {
-            log.error("数据包格式不正确: {}", data);
-            throw new IllegalArgumentException("数据包格式不正确");
+    public Result sendDataToPLC(String data) {
+        // 实现发送数据到PLC的逻辑
+        // 例如，您可以从Redis获取相关数据并构建要发送的数据包
+        String vb150Data = redisTemplate.opsForValue().get(PlcServiceImpl.VB150_KEY);
+        if (vb150Data == null) {
+            log.warn("未能从Redis获取VB150数据");
+            return Result.error("未能获取VB150数据");
         }
-        
-        try {
-            nettyServerHandler.sendMessageToClient(ipConfig.getPlc(), data, true);
-            log.info("已发送数据到PLC: {}", data);
-        } catch (Exception e) {
-            log.error("发送数据到PLC失败: {}", e.getMessage());
-            throw new RuntimeException("发送数据到PLC失败: " + e.getMessage());
-        }
+
+        // 构建要发送的数据包
+        String completeData = String.join(" ", data, vb150Data); // 假设数据之间用空格分隔
+
+        // 调用PlcServiceImpl发送数据
+         plcServiceImpl.sendDataToPlc(completeData); // 确保您有这个调用
+
+        return Result.success("数据已成功发送到PLC");
     }
 }

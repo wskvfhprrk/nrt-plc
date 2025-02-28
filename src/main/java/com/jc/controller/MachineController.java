@@ -5,8 +5,6 @@ import com.jc.entity.MachineStatus;
 import com.jc.service.MachineService; // 导入服务接口
 import com.jc.service.impl.Reset; // 导入 Reset 类
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -18,8 +16,6 @@ public class MachineController {
     @Autowired
     private MachineService machineService; // 注入服务
 
-    @Autowired
-    private Reset reset; // 注入 Reset 服务
 
     @PostMapping("/save")
     public Result saveSettings(@RequestBody MachineStatus settings) {
@@ -67,12 +63,11 @@ public class MachineController {
 
     // 处理上位机写入数据请求
     @PostMapping("/writeData")
-    public ResponseEntity<String> writeData(@RequestBody String data) {
+    public Result writeData(@RequestBody String data) {
         try {
-            machineService.sendDataToPLC(data);
-            return ResponseEntity.ok("数据成功写入 PLC");
+            return machineService.sendDataToPLC(data);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return Result.error(e.getMessage());
         }
     }
 }
