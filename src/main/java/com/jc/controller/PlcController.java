@@ -12,8 +12,8 @@ public class PlcController {
     @Autowired
     private Plc plc;
 
-    @PostMapping("/sendData")
-    public Result sendData(@RequestBody String data) {
+    @GetMapping("/sendData")
+    public Result sendData(String data) {
         plc.sendDataToPlc(data);
         return Result.success("数据已发送到PLC");
     }
