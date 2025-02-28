@@ -7,48 +7,63 @@
         <el-col :span="6">
           <div class="status-item">
             <span class="label">机器状态：</span>
-            <el-tag :type="machineData.basicStatus?.machineStatus === '运行中' ? 'success' : 'danger'">
-              {{ machineData.basicStatus?.machineStatus || '未知' }}
+            <el-tag :type="machineData.machineStatus === '运行中' ? 'success' : 'danger'">
+              {{ machineData.machineStatus || '未知' }}
             </el-tag>
           </div>
         </el-col>
         <el-col :span="6">
           <div class="status-item">
             <span class="label">牛肉汤温度：</span>
-            <span class="value" :style="{ color: machineData.basicStatus.currentTemperature > 80 ? 'red' : 'black' }">{{ machineData.basicStatus.currentTemperature }}°C</span>
+            <span class="value" :style="{ color: machineData.temperature > 80 ? 'red' : 'black' }">{{ machineData.temperature }}°C</span>
           </div>
         </el-col>
         <el-col :span="6">
           <div class="status-item">
             <span class="label">菜重量：</span>
-            <span class="value">{{ machineData.basicStatus.currentWeight }} g</span>
+            <span class="value">{{ machineData.weight }} g</span>
           </div>
         </el-col>
         <el-col :span="6">
           <div class="status-item">
             <span class="label">运行时间：</span>
-            <span class="value">{{ machineData.basicStatus.uptime }}</span>
+            <span class="value">{{ machineData.runtime }}</span>
           </div>
         </el-col>
-        
       </el-row>
     </el-card>
 
     <!-- 机器人状态区域 -->
     <el-card class="robot-status-card">
       <el-row :gutter="20">
-        <el-col :span="12">
+        <el-col :span="6">
           <div class="status-item">
             <span class="label">机器人状态：</span>
-            <el-tag :type="getRobotStatusType(machineData.robotStatus.robotStatus)">
-              {{ machineData.robotStatus.robotStatus }}
+            <el-tag :type="getRobotStatusType(machineData.robotStatus)">
+              {{ machineData.robotStatus || '未知' }}
             </el-tag>
           </div>
         </el-col>
-        <el-col :span="12">
+        <el-col :span="6">
+          <div class="status-item">
+            <span class="label">机器人模式：</span>
+            <el-tag :type="machineData.robotMode === '自动' ? 'success' : 'warning'">
+              {{ machineData.robotMode || '未知' }}
+            </el-tag>
+          </div>
+        </el-col>
+        <el-col :span="6">
+          <div class="status-item">
+            <span class="label">机器人急停：</span>
+            <el-tag :type="machineData.robotEmergencyStop === '正常工作' ? 'success' : 'danger'">
+              {{ machineData.robotEmergencyStop || '未知' }}
+            </el-tag>
+          </div>
+        </el-col>
+        <el-col :span="6">
           <div class="status-item">
             <span class="label">机器人运行程序：</span>
-            <span class="program-value">{{ machineData.robotStatus.currentProgram }}</span>
+            <span class="program-value">{{ machineData.currentProgram || '未知' }}</span>
           </div>
         </el-col>
       </el-row>
@@ -60,16 +75,16 @@
         <el-col :span="12">
           <div class="status-item">
             <span class="label">自动清洗：</span>
-            <el-tag :type="machineData.robotStatus.autoClean ? 'success' : 'info'">
-              {{ machineData.robotStatus.autoClean ? '已开启' : '已关闭' }}
+            <el-tag :type="machineData.autoClean ? 'success' : 'info'">
+              {{ machineData.autoClean ? '已开启' : '已关闭' }}
             </el-tag>
           </div>
         </el-col>
         <el-col :span="12">
           <div class="status-item">
             <span class="label">夜间模式：</span>
-            <el-tag :type="machineData.robotStatus.nightMode ? 'success' : 'info'">
-              {{ machineData.robotStatus.nightMode ? '已开启' : '已关闭' }}
+            <el-tag :type="machineData.nightMode ? 'success' : 'info'">
+              {{ machineData.nightMode ? '已开启' : '已关闭' }}
             </el-tag>
           </div>
         </el-col>
@@ -219,18 +234,16 @@ export default {
     return {
       currentTime: '',
       machineData: {
-        basicStatus: {
-          machineStatus: '未知',
-          currentTemperature: 0,
-          currentWeight: 0,
-          uptime: ''
-        },
-        robotStatus: {
-          robotStatus: '未知',
-          currentProgram: '',
-          autoClean: false,
-          nightMode: false
-        },
+        machineStatus: '未知',
+        temperature: 0,
+        weight: 0,
+        runtime: '',
+        robotStatus: '未知',
+        robotMode: '',
+        robotEmergencyStop: '正常工作',
+        autoClean: false,
+        nightMode: false,
+        currentProgram: '',
         electricalBoxStatus: {
           temperature: 0,
           humidity: 0,
@@ -348,20 +361,16 @@ export default {
 
         this.machineData = {
           ...this.machineData,
-          basicStatus: {
-            ...this.machineData.basicStatus,
-            machineStatus: backendData.machineStatus || '未知',
-            currentTemperature: backendData.temperature || 0,
-            currentWeight: backendData.weight || 0,
-            uptime: this.formatRuntime(backendData.runtime)
-          },
-          robotStatus: {
-            ...this.machineData.robotStatus,
-            robotStatus: this.translateStatus(backendData.robotStatus) || '待实现',
-            currentProgram: backendData.currentProgram || '待实现',
-            autoClean: backendData.autoClean || false,
-            nightMode: backendData.nightMode || false
-          },
+          machineStatus: backendData.machineStatus || '未知',
+          temperature: backendData.temperature || 0,
+          weight: backendData.weight || 0,
+          runtime: this.formatRuntime(backendData.runtime),
+          robotStatus: this.translateStatus(backendData.robotStatus) || '待实现',
+          robotMode: backendData.robotMode || '待实现',
+          robotEmergencyStop: backendData.robotEmergencyStop || '正常工作',
+          autoClean: backendData.autoClean || false,
+          nightMode: backendData.nightMode || false,
+          currentProgram: backendData.currentProgram || '待实现',
           electricalBoxStatus: {
             ...this.machineData.electricalBoxStatus,
             temperature: backendData.electricalBoxTemp || 0,

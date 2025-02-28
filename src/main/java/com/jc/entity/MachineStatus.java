@@ -12,6 +12,8 @@ public class MachineStatus {
     private boolean nightMode;     // 夜间模式
     private String currentTemperature; // 当前温度
     private String robotStatus;    // 机器人状态
+    private String robotMode;      // 机器人模式（自动/手动）
+    private String robotEmergencyStop; // 机器人急停状态
     private String currentProgram;  // 当前程序
     private String electricalBoxTemp; // 电箱温度
     private String electricalBoxHumidity; // 电箱湿度
@@ -32,6 +34,8 @@ public class MachineStatus {
         this.status = "running";
         this.currentTemperature = "80"; // 假设的初始温度
         this.robotStatus = "stopped"; // 假设的初始机器人状态
+        this.robotMode = "自动"; // 初始化机器人模式
+        this.robotEmergencyStop = "正常工作"; // 初始化急停状态
         this.currentProgram = "stopped"; // 假设的初始程序
         this.electricalBoxTemp = "25"; // 假设的电箱温度
         this.electricalBoxHumidity = "50"; // 假设的电箱湿度

@@ -17,12 +17,14 @@ import java.text.SimpleDateFormat;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import com.alibaba.fastjson.JSON;
 
 @Service
 @Slf4j
 public class MachineServiceImpl implements MachineService {
     // 常量定义
     private static final String REDIS_PLC_DATA_KEY = "plc:data";
+    private static final String REDIS_ALERTS_KEY = "plc:alerts";
     private static final String PLC_DATA_START = "00";
     private static final String PLC_DATA_END = "FF";
     private static final int MIN_WEIGHT = 50;
@@ -78,6 +80,37 @@ public class MachineServiceImpl implements MachineService {
     private void initializeDefaultAlerts() {
         alerts.add(new Alert(1, "2023-10-01 10:00", "一级", "温度过高", false));
         alerts.add(new Alert(2, "2023-10-01 10:05", "二级", "水位低", true));
+        // 将默认报警信息同步到Redis
+        syncAlertsToRedis();
+    }
+
+    /**
+     * 将报警信息同步到Redis
+     */
+    private void syncAlertsToRedis() {
+        try {
+            String alertsJson = JSON.toJSONString(alerts);
+            redisTemplate.opsForValue().set(REDIS_ALERTS_KEY, alertsJson);
+            log.debug("报警信息已同步到Redis");
+        } catch (Exception e) {
+            log.error("同步报警信息到Redis失败: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * 从Redis加载报警信息
+     */
+    private void loadAlertsFromRedis() {
+        try {
+            String alertsJson = redisTemplate.opsForValue().get(REDIS_ALERTS_KEY);
+            if (alertsJson != null) {
+                alerts.clear();
+                alerts.addAll(JSON.parseArray(alertsJson, Alert.class));
+                log.debug("从Redis加载了{}条报警信息", alerts.size());
+            }
+        } catch (Exception e) {
+            log.error("从Redis加载报警信息失败: {}", e.getMessage());
+        }
     }
 
     // ==================== 设置管理相关方法 ====================
@@ -182,6 +215,8 @@ public class MachineServiceImpl implements MachineService {
         status.put("weight", settings.getWeight());
         status.put("runtime", settings.getRunTime());
         status.put("robotStatus", settings.getRobotStatus());
+        status.put("robotMode", settings.getRobotMode());
+        status.put("robotEmergencyStop", settings.getRobotEmergencyStop());
         status.put("currentProgram", settings.getCurrentProgram());
         status.put("electricalBoxTemp", settings.getElectricalBoxTemp());
         status.put("electricalBoxHumidity", settings.getElectricalBoxHumidity());
@@ -225,6 +260,7 @@ public class MachineServiceImpl implements MachineService {
             parseElectricalBoxData(data, settings);
             parseWeightData(data, settings);
             parseRobotStatus(data, settings);
+            parseRobotModeAndEmergencyStop(data, settings);
             parseProgramStatus(data, settings);
             parseRunningStatus(data, settings);
             parseElectricalBoxStatus(data, settings);
@@ -374,6 +410,8 @@ public class MachineServiceImpl implements MachineService {
             false
         );
         alerts.add(alert);
+        // 同步到Redis
+        syncAlertsToRedis();
     }
     
     /**
@@ -443,6 +481,25 @@ public class MachineServiceImpl implements MachineService {
             binary = "0" + binary;
         }
         return binary;
+    }
+
+    /**
+     * 解析机器人模式和急停状态
+     */
+    private void parseRobotModeAndEmergencyStop(String[] data, MachineStatus settings) {
+        if (data.length <= 10) return;
+        
+        // 假设V10.6是机器人模式，V10.7是机器人急停
+        String robotModeBit = String.valueOf(hexToBinary(data[10]).charAt(6));
+        String emergencyStopBit = String.valueOf(hexToBinary(data[10]).charAt(7));
+        
+        // 设置机器人模式
+        settings.setRobotMode(robotModeBit.equals("1") ? "自动" : "手动");
+        
+        // 设置急停状态
+        settings.setRobotEmergencyStop(emergencyStopBit.equals("1") ? "急停" : "正常工作");
+        
+        log.debug("机器人模式: {}, 急停状态: {}", settings.getRobotMode(), settings.getRobotEmergencyStop());
     }
 
     // ==================== 输入/输出点相关方法 ====================
@@ -530,7 +587,6 @@ public class MachineServiceImpl implements MachineService {
         map.put("V5.5", "备用4");
         map.put("V5.6", "备用5");
         map.put("V5.7", "备用6");
-
         return map;
     }
 
@@ -644,6 +700,9 @@ public class MachineServiceImpl implements MachineService {
      */
     public List<Alert> getAlerts() {
         try {
+            // 先从Redis加载最新的报警信息
+            loadAlertsFromRedis();
+            
             if (alerts.isEmpty()) {
                 log.debug("当前无报警信息");
             } else {
@@ -663,14 +722,26 @@ public class MachineServiceImpl implements MachineService {
     @Override
     public Result resetAlert(int id) {
         try {
+            // 先从Redis加载最新的报警信息
+            loadAlertsFromRedis();
+            
+            boolean found = false;
             for (Alert alert : alerts) {
                 if (alert.getId() != null && alert.getId() == id) {
                     alert.setResolved(true);
+                    found = true;
                     log.info("已重置报警ID: {}", id);
                     break;
                 }
             }
-            return Result.success();
+            
+            if (found) {
+                // 同步更新后的状态到Redis
+                syncAlertsToRedis();
+                return Result.success("报警已重置");
+            } else {
+                return Result.error("未找到指定ID的报警信息");
+            }
         } catch (Exception e) {
             log.error("重置报警失败: {}", e.getMessage());
             return Result.error("重置报警失败: " + e.getMessage());
@@ -683,11 +754,13 @@ public class MachineServiceImpl implements MachineService {
         try {
             // 清除内存中的报警记录
             alerts.clear();
+            // 同步到Redis（删除Redis中的记录）
+            redisTemplate.delete(REDIS_ALERTS_KEY);
             log.info("已清除所有报警信息");
-            return Result.success();
+            return Result.success("所有报警信息已清除");
         } catch (Exception e) {
             log.error("清除报警信息失败", e);
-            return Result.error(e.getMessage());
+            return Result.error("清除报警信息失败: " + e.getMessage());
         }
     }
 
