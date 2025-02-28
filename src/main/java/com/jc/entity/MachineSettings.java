@@ -1,0 +1,34 @@
+package com.jc.entity;
+
+import lombok.Data;
+
+@Data
+public class MachineSettings {
+    // 开门锁设置
+    private Integer openLockTime;  // 开门锁通电时间(毫秒)
+    
+    // 汤温度设置
+    private Integer soupMaxTemperature;  // 汤最高温度
+    private Integer soupMinTemperature;  // 汤最低温度
+    private Integer soupQuantity;  // 汤数量(脉冲)
+    
+    // 风扇设置
+    private Integer fanVentilationTime;  // 排油烟风扇通风时间(秒)
+    private Integer electricalBoxFanTemp;  // 电柜风扇通风温度值
+    private Integer electricalBoxFanHumidity;  // 电柜风扇通风湿度值
+    
+    // 价格设置
+    private Integer price1;  // 价格1
+    private Integer price2;  // 价格2
+    private Integer price3;  // 价格3
+    private Integer price4;  // 价格4
+    private Integer price5;  // 价格5
+    
+    // 配料重量设置
+    private Integer ingredient1Weight;  // 配料1重量
+    private Integer ingredient2Weight;  // 配料2重量
+    private Integer ingredient3Weight;  // 配料3重量
+    private Integer ingredient4Weight;  // 配料4重量
+    private Integer ingredient5Weight;  // 配料5重量
+
+}

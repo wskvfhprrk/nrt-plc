@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+
 /**
  * IO设备处理类——根据传感器自动控制设备
  * 实现了DeviceHandler接口，提供了处理IO设备消息的功能
@@ -38,7 +40,7 @@ public class PlcServiceImpl implements DeviceHandler {
             return;
         }
 
-        log.info("收到有效的PLC数据：{}", message);
+//        log.info("收到有效的PLC数据：{}", message);
         storePlcData(cleanMessage);
         syncVB50ToVB150(cleanMessage);
     }
@@ -64,7 +66,7 @@ public class PlcServiceImpl implements DeviceHandler {
     // 存储PLC数据到Redis
     private void storePlcData(String data) {
         redisTemplate.opsForValue().set(PLC_DATA_KEY, data);
-        log.info("PLC数据已存入Redis缓存");
+//        log.info("PLC数据已存入Redis缓存");
     }
 
     /**
@@ -125,33 +127,70 @@ public class PlcServiceImpl implements DeviceHandler {
 
     // 同步VB50到VB150
     private void syncVB50ToVB150(String message) {
-        String vb50Value = extractVBValue(message, "VB50");
+        // 获取VB50的值
+        String vb50Value = extractVBValue(message, 50);
+        
+        // 从缓存中获取要发送到PLC的数据
+        String plcSendData = redisTemplate.opsForValue().get(PLC_SEND_DATA_KEY);
+        if (!isEmpty(plcSendData)) {
+            // 从PLC发送数据字符串中截取前51个字节(VB0-VB50)的数据，以空格分隔
+            String[] parts = plcSendData.split(" ");
+            // 截取前51个字节(VB0-VB50)的数据，以空格分隔
+            String dataUpToVB50 = String.join(" ", Arrays.copyOf(parts, 51));
+            // 组合数据
+            String updatedData = dataUpToVB50 + " " + vb50Value;
+            // 更新发送数据
+            redisTemplate.opsForValue().set(PLC_SEND_DATA_KEY, updatedData);
+//            log.info("已将VB50的值同步到VB150存进redis中: {}", updatedData);
+        } else {
+            log.warn("已将VB50的值同步到VB150到redis中失败");
+        }
+        
+        // 保持原有的VB150更新逻辑
         redisTemplate.opsForValue().set(VB150_KEY, vb50Value);
-        log.info("已将VB50的值同步到VB150: {}", vb50Value);
+//        log.info("已将VB50的值同步到VB150: {}", vb50Value);
     }
 
     /**
-     * 从PLC消息中提取指定VB变量的值
-     * @param message PLC完整消息数据
-     * @param vbName VB变量名（例如：VB50、VB150等）
-     * @return 提取的VB值
+     * 截取数据到VB50（包含VB50）
+     * @param data PLC数据
+     * @return 截取到VB50的数据
      */
-    private String extractVBValue(String message, String vbName) {
-        // 从vbName中提取数字部分（例如从"VB50"提取出50）
-        int vbNumber = Integer.parseInt(vbName.substring(2));
+    private String extractDataUpToVB50(String data) {
+        String[] parts = data.split(" ");
+        StringBuilder result = new StringBuilder();
         
-        // 计算在消息中的实际位置
-        // 由于每个字节用两个十六进制字符表示，所以索引需要乘以2
-        int startIndex = vbNumber * 2;
-        int endIndex = startIndex + 2;  // 每个VB值占用2个字符
-        
-        // 检查索引是否越界
-        if (endIndex > message.length()) {
-            log.warn("提取VB值时索引越界：{}，消息长度：{}", endIndex, message.length());
-            return "00";  // 返回默认值
+        for (int i = 0; i <= 50 && i < parts.length; i++) {
+            result.append(parts[i]);
+            if (i < 50 && i < parts.length - 1) {
+                result.append(" ");
+            }
         }
         
-        return message.substring(startIndex, endIndex);
+        return result.toString();
+    }
+
+    /**
+     * 从PLC消息中提取指定位置开始的值
+     * @param message PLC完整消息数据
+     * @param index 开始提取的索引位置
+     * @return 从指定索引开始到结束的所有值，以空格连接
+     */
+    private String extractVBValue(String message, int index) {
+        String[] parts = message.split(" ");
+        if (index >= parts.length) {
+            log.warn("索引超出数组范围：index={}, length={}", index, parts.length);
+            return "";
+        }
+        
+        StringBuilder result = new StringBuilder();
+        for (int i = index; i < parts.length; i++) {
+            result.append(parts[i]);
+            if (i < parts.length - 1) {
+                result.append(" ");
+            }
+        }
+        return result.toString();
     }
 
     // 替换VB150以后的值
@@ -209,7 +248,7 @@ public class PlcServiceImpl implements DeviceHandler {
             log.warn("没有找到已发送的PLC数据");
             return null;
         }
-        log.info("读取到已发送的PLC数据：{}", sentData);
+//        log.info("读取到已发送的PLC数据：{}", sentData);
         return sentData;
     }
 }

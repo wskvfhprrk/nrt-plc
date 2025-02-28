@@ -1,7 +1,6 @@
 package com.jc.netty.server;
 
 import com.jc.config.IpConfig;
-import com.jc.service.impl.Reset;
 import com.jc.utils.HexConvert;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -34,11 +33,6 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     @Autowired
     @Lazy
     private FicationProcessing ficationProcessing;
-    @Autowired
-    private IpConfig ipConfig;
-    @Autowired
-    @Lazy
-    private Reset reset;
 
     /**
      * 客户端连接时调用
@@ -151,13 +145,6 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
      * @param hex      是否为16进制消息
      */
     public void sendMessageToClient(String clientIp, String message, Boolean hex) {
-//        log.info("向：{} 发送指令：{}",clientIp,message);
-        //停一下防止多条造成混乱
-//        try {
-//            Thread.sleep(Constants.SLEEP_TIME_MS);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
         for (Map.Entry<String, Channel> entry : clientMap.entrySet()) {
             String address = entry.getKey();
             if (address.equals(clientIp)) {
@@ -176,5 +163,4 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
         }
         log.error("无法找到与 IP 地址 {} 相关联的通道！", clientIp);
     }
-
 }

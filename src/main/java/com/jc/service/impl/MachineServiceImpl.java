@@ -1,12 +1,11 @@
 package com.jc.service.impl;
 
-import com.jc.config.IpConfig;
 import com.jc.config.Result;
 import com.jc.entity.MachineStatus;
 import com.jc.entity.InputPoint;
 import com.jc.entity.OutputPoint;
 import com.jc.entity.Alert;
-import com.jc.netty.server.NettyServerHandler;
+import com.jc.entity.MachineSettings;
 import com.jc.service.MachineService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -40,7 +39,8 @@ public class MachineServiceImpl implements MachineService {
     private static final String STATUS_UNKNOWN = "未知的运行状态值";
 
     // 字段定义
-    private MachineStatus currentSettings;
+    private MachineStatus currentStatus;
+    private MachineSettings currentSettings;
     private final List<Alert> alerts = new ArrayList<>();
 
     // 依赖注入
@@ -61,13 +61,34 @@ public class MachineServiceImpl implements MachineService {
      * 初始化默认设置
      */
     private void initializeDefaultSettings() {
-        currentSettings = new MachineStatus();
-        currentSettings.setWeight(120);
-        currentSettings.setSoupVolume("35");
-        currentSettings.setRunTime(4);
-        currentSettings.setAutoClean(true);
-        currentSettings.setNightMode(false);
-        currentSettings.setStatus(STATUS_RUNNING);
+        currentStatus = new MachineStatus();
+        currentStatus.setWeight(120);
+        currentStatus.setSoupVolume("35");
+        currentStatus.setRunTime(4);
+        currentStatus.setAutoClean(true);
+        currentStatus.setNightMode(false);
+        currentStatus.setStatus(STATUS_RUNNING);
+
+        currentSettings = new MachineSettings();
+        currentSettings.setOpenLockTime(50);
+        currentSettings.setSoupMaxTemperature(90);
+        currentSettings.setSoupMinTemperature(70);
+        currentSettings.setSoupQuantity(10);
+        currentSettings.setFanVentilationTime(60);
+        currentSettings.setElectricalBoxFanTemp(40);
+        currentSettings.setElectricalBoxFanHumidity(60);
+
+        currentSettings.setPrice1(10);
+        currentSettings.setPrice2(15);
+        currentSettings.setPrice3(20);
+        currentSettings.setPrice4(25);
+        currentSettings.setPrice5(30);
+
+        currentSettings.setIngredient1Weight(100);
+        currentSettings.setIngredient2Weight(150);
+        currentSettings.setIngredient3Weight(200);
+        currentSettings.setIngredient4Weight(250);
+        currentSettings.setIngredient5Weight(300);
     }
 
     /**
@@ -112,30 +133,39 @@ public class MachineServiceImpl implements MachineService {
     // ==================== 设置管理相关方法 ====================
 
     @Override
-    public void saveSettings(MachineStatus settings) {
+    public Result saveSettings(MachineSettings settings) {
         try {
             validateSettings(settings);
-            this.currentSettings = settings;
+            //todo  从redis中读取数据，然后把设置新数据发送过去，注意还有制作数据是一起发的
+
+
+
+            return Result.success(settings);
         } catch (Exception e) {
             log.error("保存设置失败: {}", e.getMessage());
-            throw new RuntimeException(e.getMessage());
+            return Result.error(e.getMessage());
         }
     }
 
     /**
      * 验证设置参数的合法性
      */
-    private void validateSettings(MachineStatus settings) {
-        if (settings.getWeight() < MIN_WEIGHT || settings.getWeight() > MAX_WEIGHT) {
-            throw new IllegalArgumentException("面条重量超出范围");
+    private void validateSettings(MachineSettings settings) {
+
+        if (settings.getOpenLockTime() < 0 || settings.getOpenLockTime() > 120) {
+            throw new IllegalArgumentException("开门锁通电时间超出范围");
         }
 
-        if (settings.getRunTime() < MIN_RUN_TIME || settings.getRunTime() > MAX_RUN_TIME) {
-            throw new IllegalArgumentException("制作时间超出范围");
+        if (settings.getSoupMaxTemperature() < settings.getSoupMinTemperature()) {
+            throw new IllegalArgumentException("汤最高温度不能低于最低温度");
         }
 
-        if (!isValidStatus(settings.getStatus())) {
-            throw new IllegalArgumentException("无效的运行状态");
+        if (settings.getSoupMaxTemperature() < 0 || settings.getSoupMaxTemperature() > 100) {
+            throw new IllegalArgumentException("汤最高温度超出范围");
+        }
+
+        if (settings.getSoupMinTemperature() < 0 || settings.getSoupMinTemperature() > 100) {
+            throw new IllegalArgumentException("汤最低温度超出范围");
         }
     }
 
@@ -150,24 +180,7 @@ public class MachineServiceImpl implements MachineService {
         );
     }
 
-    @Override
-    public MachineStatus getSettings() {
-        return currentSettings != null ? currentSettings : getDefaultSettings();
-    }
 
-    /**
-     * 获取默认设置
-     */
-    private MachineStatus getDefaultSettings() {
-        MachineStatus defaultSettings = new MachineStatus();
-        defaultSettings.setWeight(100);
-        defaultSettings.setSoupVolume("30");
-        defaultSettings.setRunTime(3);
-        defaultSettings.setAutoClean(true);
-        defaultSettings.setNightMode(false);
-        defaultSettings.setStatus(STATUS_RUNNING);
-        return defaultSettings;
-    }
 
     // ==================== 机器状态相关方法 ====================
 
@@ -185,11 +198,9 @@ public class MachineServiceImpl implements MachineService {
         // 解析PLC数据并更新当前设置
         parsePlcData(plcData);
 
-        // 获取当前设置
-        MachineStatus settings = getSettings();
 
         // 填充状态信息
-        populateStatusMap(status, settings);
+        populateStatusMap(status, currentStatus);
 
         return status;
     }
@@ -204,21 +215,44 @@ public class MachineServiceImpl implements MachineService {
     /**
      * 填充状态Map
      */
-    private void populateStatusMap(Map<String, Object> status, MachineStatus settings) {
+    private void populateStatusMap(Map<String, Object> status, MachineStatus machineStatus) {
         // 基本状态信息
-        status.put("machineStatus", settings.getStatus());
-        status.put("temperature", settings.getCurrentTemperature());
-        status.put("weight", settings.getWeight());
-        status.put("runtime", settings.getRunTime());
-        status.put("robotStatus", settings.getRobotStatus());
-        status.put("robotMode", settings.getRobotMode());
-        status.put("robotEmergencyStop", settings.getRobotEmergencyStop());
-        status.put("currentProgram", settings.getCurrentProgram());
-        status.put("electricalBoxTemp", settings.getElectricalBoxTemp());
-        status.put("electricalBoxHumidity", settings.getElectricalBoxHumidity());
-        status.put("electricalBoxStatus", settings.getElectricalBoxStatus());
-        status.put("autoClean", settings.isAutoClean());
-        status.put("nightMode", settings.isNightMode());
+        status.put("machineStatus", machineStatus.getStatus());
+        status.put("temperature", machineStatus.getCurrentTemperature());
+        status.put("weight", machineStatus.getWeight());
+        status.put("runtime", machineStatus.getRunTime());
+        status.put("robotStatus", machineStatus.getRobotStatus());
+        status.put("robotMode", machineStatus.getRobotMode());
+        status.put("robotEmergencyStop", machineStatus.getRobotEmergencyStop());
+        status.put("currentProgram", machineStatus.getCurrentProgram());
+        status.put("electricalBoxTemp", machineStatus.getElectricalBoxTemp());
+        status.put("electricalBoxHumidity", machineStatus.getElectricalBoxHumidity());
+        status.put("electricalBoxStatus", machineStatus.getElectricalBoxStatus());
+        status.put("autoClean", machineStatus.isAutoClean());
+        status.put("nightMode", machineStatus.isNightMode());
+
+        // 设置信息
+        status.put("openLockTime", currentSettings.getOpenLockTime());
+        status.put("soupMaxTemperature", currentSettings.getSoupMaxTemperature());
+        status.put("soupMinTemperature", currentSettings.getSoupMinTemperature());
+        status.put("soupQuantity", currentSettings.getSoupQuantity());
+        status.put("fanVentilationTime", currentSettings.getFanVentilationTime());
+        status.put("electricalBoxFanTemp", currentSettings.getElectricalBoxFanTemp());
+        status.put("electricalBoxFanHumidity", currentSettings.getElectricalBoxFanHumidity());
+
+        // 价格信息
+        status.put("price1", currentSettings.getPrice1());
+        status.put("price2", currentSettings.getPrice2());
+        status.put("price3", currentSettings.getPrice3());
+        status.put("price4", currentSettings.getPrice4());
+        status.put("price5", currentSettings.getPrice5());
+
+        // 配料重量信息
+        status.put("ingredient1Weight", currentSettings.getIngredient1Weight());
+        status.put("ingredient2Weight", currentSettings.getIngredient2Weight());
+        status.put("ingredient3Weight", currentSettings.getIngredient3Weight());
+        status.put("ingredient4Weight", currentSettings.getIngredient4Weight());
+        status.put("ingredient5Weight", currentSettings.getIngredient5Weight());
 
         // 获取并添加设备输入点、输出点和报警信息
         List<InputPoint> inputPoints = getInputPoints();
@@ -264,7 +298,7 @@ public class MachineServiceImpl implements MachineService {
             checkErrorCode(data);
 
             // 更新当前设置
-            this.currentSettings = settings;
+            this.currentStatus = settings;
         } catch (Exception e) {
             log.error("解析PLC数据失败: {}", e.getMessage(), e);
         }
@@ -789,8 +823,135 @@ public class MachineServiceImpl implements MachineService {
         String completeData = String.join(" ", data, vb150Data); // 假设数据之间用空格分隔
 
         // 调用PlcServiceImpl发送数据
-         plcServiceImpl.sendDataToPlc(completeData); // 确保您有这个调用
+        plcServiceImpl.sendDataToPlc(completeData); // 确保您有这个调用
 
         return Result.success("数据已成功发送到PLC");
+    }
+
+    @Override
+    public MachineStatus getMachineSettings() {
+        try {
+            // 从PlcServiceImpl读取已发送的数据
+            String plcData = plcServiceImpl.readSentData();
+            if (plcData == null) {
+                log.warn("未能从PLC缓存中读取设置数据");
+                return currentStatus;
+            }
+
+            // 将数据字符串分割成字节数组
+            String[] data = plcData.split(" ");
+            
+            // 验证数据格式
+            if (!validatePlcDataFormat(data)) {
+                log.error("PLC数据格式无效");
+                return currentStatus;
+            }
+
+            // 创建新的状态对象
+            MachineStatus status = new MachineStatus();
+            
+            try {
+                // 解析各项设置数据
+                // 注意：以下索引位置需要根据实际PLC数据格式调整
+                
+                // 解析开门锁时间设置 (假设在数据的第50位)
+                status.setOpenLockTime(Integer.parseInt(data[50], 16));
+                
+                // 解析温度相关设置
+                if (data.length > 52) {
+                    status.setCurrentTemperature(String.valueOf(
+                        parseSignedHexValue(data[51] + data[52]) / 10.0));
+                }
+                
+                // 解析重量设置
+                if (data.length > 26) {
+                    status.setWeight(Integer.parseInt(data[26], 16));
+                }
+                
+                // 解析运行时间
+                if (data.length > 33) {
+                    status.setRunTime(Integer.parseInt(data[32] + data[33], 16));
+                }
+                
+                // 解析自动清洗和夜间模式设置
+                if (data.length > 53) {
+                    status.setAutoClean(Integer.parseInt(data[52], 16) != 0);
+                    status.setNightMode(Integer.parseInt(data[53], 16) != 0);
+                }
+                
+                // 解析机器人状态
+                if (data.length > 16) {
+                    status.setRobotStatus(getRobotStatusDescription(
+                        Integer.parseInt(data[16], 16)));
+                }
+                
+                // 解析机器人模式和急停状态
+                if (data.length > 10) {
+                    String robotModeBit = String.valueOf(hexToBinary(data[10]).charAt(6));
+                    String emergencyStopBit = String.valueOf(hexToBinary(data[10]).charAt(7));
+                    
+                    status.setRobotMode(robotModeBit.equals("1") ? "自动" : "手动");
+                    status.setRobotEmergencyStop(emergencyStopBit.equals("1") ? "急停" : "正常工作");
+                }
+                
+                // 解析运行状态
+                if (data.length > 15) {
+                    int runningStatus = Integer.parseInt(data[15], 16);
+                    switch (runningStatus) {
+                        case 1:
+                            status.setStatus(STATUS_NORMAL);
+                            break;
+                        case 2:
+                            status.setStatus(STATUS_STANDBY_MODE);
+                            break;
+                        case 0:
+                            status.setStatus(STATUS_STOP);
+                            break;
+                        default:
+                            status.setStatus(STATUS_UNKNOWN);
+                    }
+                }
+                
+                // 解析电箱状态
+                if (data.length > 17) {
+                    status.setElectricalBoxStatus(
+                        Integer.parseInt(data[17], 16));
+                }
+
+                // 添加缺少的设置值
+                // 从currentSettings中获取这些值，因为这些是在initializeDefaultSettings()中设置的
+                status.setSoupMaxTemperature(currentSettings.getSoupMaxTemperature());
+                status.setSoupMinTemperature(currentSettings.getSoupMinTemperature());
+                status.setSoupQuantity(currentSettings.getSoupQuantity());
+                status.setFanVentilationTime(currentSettings.getFanVentilationTime());
+                status.setElectricalBoxFanTemp(currentSettings.getElectricalBoxFanTemp());
+                status.setElectricalBoxFanHumidity(currentSettings.getElectricalBoxFanHumidity());
+
+                // 价格设置
+                status.setPrice1(currentSettings.getPrice1());
+                status.setPrice2(currentSettings.getPrice2());
+                status.setPrice3(currentSettings.getPrice3());
+                status.setPrice4(currentSettings.getPrice4());
+                status.setPrice5(currentSettings.getPrice5());
+
+                // 配料重量设置
+                status.setIngredient1Weight(currentSettings.getIngredient1Weight());
+                status.setIngredient2Weight(currentSettings.getIngredient2Weight());
+                status.setIngredient3Weight(currentSettings.getIngredient3Weight());
+                status.setIngredient4Weight(currentSettings.getIngredient4Weight());
+                status.setIngredient5Weight(currentSettings.getIngredient5Weight());
+
+                log.debug("成功解析机器设置数据");
+                return status;
+                
+            } catch (NumberFormatException e) {
+                log.error("解析PLC数据时出错: {}", e.getMessage());
+                return currentStatus;
+            }
+            
+        } catch (Exception e) {
+            log.error("获取机器设置失败: {}", e.getMessage());
+            return currentStatus;
+        }
     }
 }

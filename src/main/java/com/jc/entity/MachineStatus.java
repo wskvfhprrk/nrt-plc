@@ -18,11 +18,35 @@ public class MachineStatus {
     private String electricalBoxTemp; // 电箱温度
     private String electricalBoxHumidity; // 电箱湿度
     private int electricalBoxStatus; // 电箱状态
+    private int openLockTime;  // 添加开锁时间属性
+
+    // 添加缺少的字段
+    private Integer soupMaxTemperature;
+    private Integer soupMinTemperature;
+    private Integer soupQuantity;
+    private Integer fanVentilationTime;
+    private Integer electricalBoxFanTemp;
+    private Integer electricalBoxFanHumidity;
+    
+    // 价格设置
+    private Integer price1;
+    private Integer price2;
+    private Integer price3;
+    private Integer price4;
+    private Integer price5;
+    
+    // 配料重量设置
+    private Integer ingredient1Weight;
+    private Integer ingredient2Weight;
+    private Integer ingredient3Weight;
+    private Integer ingredient4Weight;
+    private Integer ingredient5Weight;
 
     // 添加设置电箱状态的方法
     public void setElectricalBoxStatus(int status) {
         this.electricalBoxStatus = status;
     }
+
 
     // 构造函数，赋予初始值（模拟数值）
     public MachineStatus() {        
@@ -40,5 +64,6 @@ public class MachineStatus {
         this.electricalBoxTemp = "25"; // 假设的电箱温度
         this.electricalBoxHumidity = "50"; // 假设的电箱湿度
         this.electricalBoxStatus = 0; // 初始化电箱状态
+        this.openLockTime = 0; // 初始化开锁时间
     }
 } 

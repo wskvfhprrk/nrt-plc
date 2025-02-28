@@ -1,14 +1,15 @@
 package com.jc.service;
 
 import com.jc.config.Result;
+import com.jc.entity.MachineSettings;
 import com.jc.entity.MachineStatus;
 import java.util.Map;
 
 public interface MachineService {
-    void saveSettings(MachineStatus settings);
-    MachineStatus getSettings();
+    Result saveSettings(MachineSettings settings);
     Map<String, Object> getMachineStatus();
     Result resetAlert(int id);
     Result clearAllAlerts();
     Result sendDataToPLC(String data);
+    MachineStatus getMachineSettings();
 }

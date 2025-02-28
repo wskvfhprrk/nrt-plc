@@ -149,16 +149,27 @@ export default {
         .then(response => {
           if (response.data.code === 200) {
             const backendData = response.data.data;
-            // 映射后台数据到表单
+            // 完整映射所有字段
             this.form = {
-              ...this.form, // 保留原有默认值
               autoClean: backendData.autoClean,
               nightMode: backendData.nightMode,
+              openLockTime: backendData.openLockTime,
               soupMaxTemperature: backendData.soupMaxTemperature,
               soupMinTemperature: backendData.soupMinTemperature,
               soupQuantity: backendData.soupQuantity,
+              fanVentilationTime: backendData.fanVentilationTime,
               electricalBoxFanTemp: backendData.electricalBoxFanTemp,
-              electricalBoxFanHumidity: backendData.electricalBoxFanHumidity
+              electricalBoxFanHumidity: backendData.electricalBoxFanHumidity,
+              price1: backendData.price1,
+              price2: backendData.price2,
+              price3: backendData.price3,
+              price4: backendData.price4,
+              price5: backendData.price5,
+              ingredient1Weight: backendData.ingredient1Weight,
+              ingredient2Weight: backendData.ingredient2Weight,
+              ingredient3Weight: backendData.ingredient3Weight,
+              ingredient4Weight: backendData.ingredient4Weight,
+              ingredient5Weight: backendData.ingredient5Weight
             };
           } else {
             this.$message.error(response.data.message);

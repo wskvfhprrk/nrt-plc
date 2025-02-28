@@ -1,9 +1,9 @@
 package com.jc.controller;
 
 import com.jc.config.Result;
+import com.jc.entity.MachineSettings;
 import com.jc.entity.MachineStatus;
 import com.jc.service.MachineService; // 导入服务接口
-import com.jc.service.impl.Reset; // 导入 Reset 类
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,7 +18,7 @@ public class MachineController {
 
 
     @PostMapping("/save")
-    public Result saveSettings(@RequestBody MachineStatus settings) {
+    public Result saveSettings(@RequestBody MachineSettings settings) {
         try {
             machineService.saveSettings(settings); // 使用服务保存设置
             return Result.success("设置已保存");
@@ -29,7 +29,7 @@ public class MachineController {
 
     @GetMapping("/get")
     public Result getSettings() {
-        MachineStatus settings = machineService.getSettings(); // 使用服务获取设置
+        MachineStatus settings = machineService.getMachineSettings();
         return Result.success(settings);
     }
 
