@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
-public class Plc implements DeviceHandler {
+public class PlcServiceImpl implements DeviceHandler {
 
     @Autowired
     private RedisTemplate<String, String> redisTemplate;

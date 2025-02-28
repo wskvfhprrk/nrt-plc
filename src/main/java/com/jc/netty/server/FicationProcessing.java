@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 public class FicationProcessing {
 
     @Autowired
-    private Plc plc; // 信号设备处理器
+    private PlcServiceImpl plcServiceImpl; // 信号设备处理器
     @Autowired
     private IpConfig ipConfig;
 
@@ -29,7 +29,7 @@ public class FicationProcessing {
     public void classificationProcessing(String clientIp, boolean flag, String message) {
         // 根据客户端IP地址分类处理消息到对应的设备处理器
         if (clientIp.equals(ipConfig.getPlc())) {
-            plc.handle(message, flag);
+            plcServiceImpl.handle(message, flag);
         }
     }
 }

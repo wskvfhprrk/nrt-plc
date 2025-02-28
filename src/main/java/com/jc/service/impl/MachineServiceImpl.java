@@ -45,7 +45,7 @@ public class MachineServiceImpl implements MachineService {
 
     // 依赖注入
     @Autowired
-    private Plc plc;
+    private PlcServiceImpl plcServiceImpl;
     @Autowired
     private NettyServerHandler nettyServerHandler;
     @Autowired
@@ -681,7 +681,7 @@ public class MachineServiceImpl implements MachineService {
      */
     private String getPlcStatus(String pointId) {
         try {
-            String status = plc.getOutputStatus(pointId);
+            String status = plcServiceImpl.getOutputStatus(pointId);
             if (status == null || status.isEmpty()) {
                 log.warn("PLC点位 {} 返回空状态", pointId);
                 return "未知";
