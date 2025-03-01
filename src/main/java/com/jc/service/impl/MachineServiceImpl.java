@@ -187,29 +187,29 @@ public class MachineServiceImpl implements MachineService {
             StringBuilder settingsData = new StringBuilder();
             
             // 添加基本设置数据（VB150-VB199）
-            settingsData.append(String.format("%02X", settings.getAutoClean() ? 1 : 0)).append(" ")
-                      .append(String.format("%02X", settings.getNightMode() ? 1 : 0)).append(" ")
-                      .append(String.format("%02X", settings.getOpenLockTime())).append(" ")
-                      .append(String.format("%02X", settings.getSoupMaxTemperature())).append(" ")
-                      .append(String.format("%02X", settings.getSoupMinTemperature())).append(" ")
-                      .append(String.format("%02X", settings.getSoupQuantity())).append(" ")
-                      .append(String.format("%02X", settings.getFanVentilationTime())).append(" ")
-                      .append(String.format("%02X", settings.getElectricalBoxFanTemp())).append(" ")
-                      .append(String.format("%02X", settings.getElectricalBoxFanHumidity())).append(" ");
+            settingsData.append(String.format("%02X", settings.getAutoClean() ? 1 : 0)).append(" ")      // VB50: 自动清洗开关(1:开启,0:关闭)
+                      .append(String.format("%02X", settings.getNightMode() ? 1 : 0)).append(" ")        // VB51: 夜间模式开关(1:开启,0:关闭)
+                      .append(String.format("%02X", settings.getOpenLockTime())).append(" ")             // VB52: 开门锁通电时间(0-255秒)
+                      .append(String.format("%02X", settings.getSoupMaxTemperature())).append(" ")       // VB53: 汤最高温度(0-255℃)
+                      .append(String.format("%02X", settings.getSoupMinTemperature())).append(" ")       // VB54: 汤最低温度(0-255℃)
+                      .append(String.format("%02X", settings.getSoupQuantity())).append(" ")             // VB55: 汤数量(0-255)
+                      .append(String.format("%02X", settings.getFanVentilationTime())).append(" ")       // VB56: 排油烟风扇通风时间(0-255分钟)
+                      .append(String.format("%02X", settings.getElectricalBoxFanTemp())).append(" ")     // VB57: 电柜风扇通风温度(0-255℃)
+                      .append(String.format("%02X", settings.getElectricalBoxFanHumidity())).append(" "); // VB58: 电柜风扇通风湿度(0-255%)
             
             // 添加价格设置（VB57-VB61）
-            settingsData.append(String.format("%02X", settings.getPrice1())).append(" ")
-                      .append(String.format("%02X", settings.getPrice2())).append(" ")
-                      .append(String.format("%02X", settings.getPrice3())).append(" ")
-                      .append(String.format("%02X", settings.getPrice4())).append(" ")
-                      .append(String.format("%02X", settings.getPrice5())).append(" ");
+            settingsData.append(String.format("%02X", settings.getPrice1())).append(" ")                // VB59: 价格1(0-255元)
+                      .append(String.format("%02X", settings.getPrice2())).append(" ")                  // VB60: 价格2(0-255元)
+                      .append(String.format("%02X", settings.getPrice3())).append(" ")                  // VB61: 价格3(0-255元)
+                      .append(String.format("%02X", settings.getPrice4())).append(" ")                  // VB62: 价格4(0-255元)
+                      .append(String.format("%02X", settings.getPrice5())).append(" ");                 // VB63: 价格5(0-255元)
             
             // 添加配料重量设置（VB62-VB71，每个配料用2字节表示）
-            appendTwoByteHex(settingsData, settings.getIngredient1Weight());
-            appendTwoByteHex(settingsData, settings.getIngredient2Weight());
-            appendTwoByteHex(settingsData, settings.getIngredient3Weight());
-            appendTwoByteHex(settingsData, settings.getIngredient4Weight());
-            appendTwoByteHex(settingsData, settings.getIngredient5Weight());
+            appendTwoByteHex(settingsData, settings.getIngredient1Weight());                           // VB64-65: 配料1重量(0-255g)
+            appendTwoByteHex(settingsData, settings.getIngredient2Weight());                           // VB66-67: 配料2重量(0-255g)
+            appendTwoByteHex(settingsData, settings.getIngredient3Weight());                           // VB68-69: 配料3重量(0-255g)
+            appendTwoByteHex(settingsData, settings.getIngredient4Weight());                           // VB70-71: 配料4重量(0-255g)
+            appendTwoByteHex(settingsData, settings.getIngredient5Weight());                           // VB72-73: 配料5重量(0-255g)
             
             // 计算已添加的字节数
             int currentBytes = settingsData.toString().split(" ").length;
@@ -960,33 +960,29 @@ public class MachineServiceImpl implements MachineService {
             
             try {
                 // 解析基本设置 (VB150-VB199)
-                settings.setAutoClean(Integer.parseInt(data[50], 16) == 1);
-                settings.setNightMode(Integer.parseInt(data[51], 16) == 1);
-                settings.setOpenLockTime(Integer.parseInt(data[52], 16));
-                
-                // 解析温度相关设置
-                settings.setSoupQuantity(Integer.parseInt(data[53], 16));
-                settings.setSoupMaxTemperature(Integer.parseInt(data[54], 16));
-                settings.setSoupMinTemperature(Integer.parseInt(data[55], 16));
+                settings.setAutoClean(Integer.parseInt(data[50], 16) == 1);                // VB50: 自动清洗开关(1:开启,0:关闭)
+                settings.setNightMode(Integer.parseInt(data[51], 16) == 1);                // VB51: 夜间模式开关(1:开启,0:关闭)
+                settings.setOpenLockTime(Integer.parseInt(data[52], 16));                  // VB52: 开门锁通电时间(0-255秒)
+                settings.setSoupQuantity(Integer.parseInt(data[53], 16));                  // VB53: 汤数量(0-255)
+                settings.setSoupMaxTemperature(Integer.parseInt(data[54], 16));            // VB54: 汤最高温度(0-255℃)
+                settings.setSoupMinTemperature(Integer.parseInt(data[55], 16));            // VB55: 汤最低温度(0-255℃)
+                settings.setFanVentilationTime(Integer.parseInt(data[56], 16));            // VB56: 排油烟风扇通风时间(0-255分钟)
+                settings.setElectricalBoxFanTemp(Integer.parseInt(data[57], 16));          // VB57: 电柜风扇通风温度(0-255℃)
+                settings.setElectricalBoxFanHumidity(Integer.parseInt(data[58], 16));      // VB58: 电柜风扇通风湿度(0-255%)
 
-                // 解析风扇设置
-                settings.setFanVentilationTime(Integer.parseInt(data[56], 16));
-                settings.setElectricalBoxFanTemp(Integer.parseInt(data[57], 16));
-                settings.setElectricalBoxFanHumidity(Integer.parseInt(data[58], 16));
-                
                 // 解析价格设置 (VB57-VB61)
-                settings.setPrice1(Integer.parseInt(data[59], 16));
-                settings.setPrice2(Integer.parseInt(data[60], 16));
-                settings.setPrice3(Integer.parseInt(data[61], 16));
-                settings.setPrice4(Integer.parseInt(data[62], 16));
-                settings.setPrice5(Integer.parseInt(data[63], 16));
-                
+                settings.setPrice1(Integer.parseInt(data[59], 16));                        // VB59: 价格1(0-255元)
+                settings.setPrice2(Integer.parseInt(data[60], 16));                        // VB60: 价格2(0-255元)
+                settings.setPrice3(Integer.parseInt(data[61], 16));                        // VB61: 价格3(0-255元)
+                settings.setPrice4(Integer.parseInt(data[62], 16));                        // VB62: 价格4(0-255元)
+                settings.setPrice5(Integer.parseInt(data[63], 16));                        // VB63: 价格5(0-255元)
+
                 // 解析配料重量设置 (VB62-VB71，每个配料2字节)
-                settings.setIngredient1Weight(parseIngredientWeight(data, 64));
-                settings.setIngredient2Weight(parseIngredientWeight(data, 65));
-                settings.setIngredient3Weight(parseIngredientWeight(data, 66));
-                settings.setIngredient4Weight(parseIngredientWeight(data, 67));
-                settings.setIngredient5Weight(parseIngredientWeight(data, 68));
+                settings.setIngredient1Weight(Integer.parseInt(data[64], 16));            // VB64-65: 配料1重量(0-255g)
+                settings.setIngredient2Weight(Integer.parseInt(data[65], 16));            // VB66-67: 配料2重量(0-255g)
+                settings.setIngredient3Weight(Integer.parseInt(data[66], 16));            // VB68-69: 配料3重量(0-255g)
+                settings.setIngredient4Weight(Integer.parseInt(data[67], 16));            // VB70-71: 配料4重量(0-255g)
+                settings.setIngredient5Weight(Integer.parseInt(data[68], 16));            // VB72-73: 配料5重量(0-255g)
 
                 log.debug("成功解析机器设置数据");
                 return settings;
@@ -1002,19 +998,4 @@ public class MachineServiceImpl implements MachineService {
         }
     }
 
-    /**
-     * 解析配料重量（2字节）
-     * @param data PLC数据数组
-     * @param startIndex 起始索引
-     * @return 解析后的重量值
-     */
-    private int parseIngredientWeight(String[] data, int startIndex) {
-        if (startIndex + 1 >= data.length) {
-            return 0;
-        }
-        // 高字节在前，低字节在后
-        int highByte = Integer.parseInt(data[startIndex], 16);
-        int lowByte = Integer.parseInt(data[startIndex + 1], 16);
-        return (highByte << 8) | lowByte;
-    }
 }
