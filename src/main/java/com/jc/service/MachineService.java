@@ -10,5 +10,5 @@ public interface MachineService {
     Map<String, Object> getMachineStatus();
     Result resetAlert(int id);
     Result clearAllAlerts();
-    MachineStatus getMachineSettings();
+    MachineSettings getMachineSettings();
 }

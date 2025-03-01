@@ -937,120 +937,84 @@ public class MachineServiceImpl implements MachineService {
         }
     }
 
-
-
     @Override
-    public MachineStatus getMachineSettings() {
+    public MachineSettings getMachineSettings() {
         try {
             // 从PlcServiceImpl读取已发送的数据
             String plcData = plcServiceImpl.readSentData();
-            if (plcData == null) {
-                log.warn("未能从PLC缓存中读取设置数据");
-                return currentStatus;
+            if (plcData == null || plcData.isEmpty()) {
+                log.warn("未能从PLC缓存中读取设置数据，返回当前设置");
+                return currentSettings;
             }
 
             // 将数据字符串分割成字节数组
             String[] data = plcData.split(" ");
             
             // 验证数据格式
-            if (!validatePlcDataFormat(data)) {
+            if (data.length < 2 || !data[0].equals(PLC_DATA_START) || !data[data.length - 1].equals(PLC_DATA_END)) {
                 log.error("PLC数据格式无效");
-                return currentStatus;
+                return currentSettings;
             }
 
-            // 创建新的状态对象
-            MachineStatus status = new MachineStatus();
+            MachineSettings settings = new MachineSettings();
             
             try {
-                // 解析各项设置数据
-                // 注意：以下索引位置需要根据实际PLC数据格式调整
-                
-                // 解析开门锁时间设置 (假设在数据的第50位)
-                status.setOpenLockTime(Integer.parseInt(data[50], 16));
+                // 解析基本设置 (VB150-VB199)
+                settings.setAutoClean(Integer.parseInt(data[50], 16) == 1);
+                settings.setNightMode(Integer.parseInt(data[51], 16) == 1);
+                settings.setOpenLockTime(Integer.parseInt(data[52], 16));
                 
                 // 解析温度相关设置
-                if (data.length > 52) {
-                    status.setCurrentTemperature(String.valueOf(
-                        parseSignedHexValue(data[51] + data[52]) / 10.0));
-                }
+                settings.setSoupQuantity(Integer.parseInt(data[53], 16));
+                settings.setSoupMaxTemperature(Integer.parseInt(data[54], 16));
+                settings.setSoupMinTemperature(Integer.parseInt(data[55], 16));
+
+                // 解析风扇设置
+                settings.setFanVentilationTime(Integer.parseInt(data[56], 16));
+                settings.setElectricalBoxFanTemp(Integer.parseInt(data[57], 16));
+                settings.setElectricalBoxFanHumidity(Integer.parseInt(data[58], 16));
                 
-                // 解析重量设置
-                status.setWeight(Integer.parseInt(data[26], 16));
-
-                // 解析运行时间
-                status.setRunTime(Integer.parseInt(data[32] + data[33], 16));
-
-                // 解析自动清洗和夜间模式设置
-                if (data.length > 53) {
-                    status.setAutoClean(Integer.parseInt(data[52], 16) != 0);
-                    status.setNightMode(Integer.parseInt(data[53], 16) != 0);
-                }
-
-                // 解析机器人状态
-                status.setRobotStatus(getRobotStatusDescription(
-                    Integer.parseInt(data[16], 16)));
-
-                // 解析机器人模式和急停状态
-                String robotModeBit = String.valueOf(hexToBinary(data[10]).charAt(6));
-                String emergencyStopBit = String.valueOf(hexToBinary(data[10]).charAt(7));
-
-                status.setRobotMode(robotModeBit.equals("1") ? "自动" : "手动");
-                status.setRobotEmergencyStop(emergencyStopBit.equals("1") ? "急停" : "正常工作");
-
-                // 解析运行状态
-                int runningStatus = Integer.parseInt(data[15], 16);
-                switch (runningStatus) {
-                    case 1:
-                        status.setStatus(STATUS_NORMAL);
-                        break;
-                    case 2:
-                        status.setStatus(STATUS_STANDBY_MODE);
-                        break;
-                    case 0:
-                        status.setStatus(STATUS_STOP);
-                        break;
-                    default:
-                        status.setStatus(STATUS_UNKNOWN);
-                }
-
-                // 解析电箱状态
-                status.setElectricalBoxStatus(
-                    Integer.parseInt(data[17], 16));
-
-                // 添加缺少的设置值
-                // 从currentSettings中获取这些值，因为这些是在initializeDefaultSettings()中设置的
-                status.setSoupMaxTemperature(currentSettings.getSoupMaxTemperature());
-                status.setSoupMinTemperature(currentSettings.getSoupMinTemperature());
-                status.setSoupQuantity(currentSettings.getSoupQuantity());
-                status.setFanVentilationTime(currentSettings.getFanVentilationTime());
-                status.setElectricalBoxFanTemp(currentSettings.getElectricalBoxFanTemp());
-                status.setElectricalBoxFanHumidity(currentSettings.getElectricalBoxFanHumidity());
-
-                // 价格设置
-                status.setPrice1(currentSettings.getPrice1());
-                status.setPrice2(currentSettings.getPrice2());
-                status.setPrice3(currentSettings.getPrice3());
-                status.setPrice4(currentSettings.getPrice4());
-                status.setPrice5(currentSettings.getPrice5());
-
-                // 配料重量设置
-                status.setIngredient1Weight(currentSettings.getIngredient1Weight());
-                status.setIngredient2Weight(currentSettings.getIngredient2Weight());
-                status.setIngredient3Weight(currentSettings.getIngredient3Weight());
-                status.setIngredient4Weight(currentSettings.getIngredient4Weight());
-                status.setIngredient5Weight(currentSettings.getIngredient5Weight());
+                // 解析价格设置 (VB57-VB61)
+                settings.setPrice1(Integer.parseInt(data[59], 16));
+                settings.setPrice2(Integer.parseInt(data[60], 16));
+                settings.setPrice3(Integer.parseInt(data[61], 16));
+                settings.setPrice4(Integer.parseInt(data[62], 16));
+                settings.setPrice5(Integer.parseInt(data[63], 16));
+                
+                // 解析配料重量设置 (VB62-VB71，每个配料2字节)
+                settings.setIngredient1Weight(parseIngredientWeight(data, 64));
+                settings.setIngredient2Weight(parseIngredientWeight(data, 65));
+                settings.setIngredient3Weight(parseIngredientWeight(data, 66));
+                settings.setIngredient4Weight(parseIngredientWeight(data, 67));
+                settings.setIngredient5Weight(parseIngredientWeight(data, 68));
 
                 log.debug("成功解析机器设置数据");
-                return status;
+                return settings;
                 
-            } catch (NumberFormatException e) {
+            } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
                 log.error("解析PLC数据时出错: {}", e.getMessage());
-                return currentStatus;
+                return currentSettings;
             }
             
         } catch (Exception e) {
             log.error("获取机器设置失败: {}", e.getMessage());
-            return currentStatus;
+            return currentSettings;
         }
+    }
+
+    /**
+     * 解析配料重量（2字节）
+     * @param data PLC数据数组
+     * @param startIndex 起始索引
+     * @return 解析后的重量值
+     */
+    private int parseIngredientWeight(String[] data, int startIndex) {
+        if (startIndex + 1 >= data.length) {
+            return 0;
+        }
+        // 高字节在前，低字节在后
+        int highByte = Integer.parseInt(data[startIndex], 16);
+        int lowByte = Integer.parseInt(data[startIndex + 1], 16);
+        return (highByte << 8) | lowByte;
     }
 }

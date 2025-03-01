@@ -12,8 +12,8 @@ public class MachineSettings {
     private Integer openLockTime;  // 开门锁通电时间(毫秒)
     
     // 汤温度设置
-    private Integer soupMaxTemperature;  // 汤最高温度
-    private Integer soupMinTemperature;  // 汤最低温度
+    private Integer soupMaxTemperature;  // 出汤温度
+    private Integer soupMinTemperature;  // 汤保温温度
     private Integer soupQuantity;  // 汤数量(脉冲)
     
     // 风扇设置

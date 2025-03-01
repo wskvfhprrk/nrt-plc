@@ -31,9 +31,16 @@ public class MachineController {
     }
 
     @GetMapping("/get")
-    public Result getSettings() {
-        MachineStatus settings = machineService.getMachineSettings();
-        return Result.success(settings);
+    public Result<MachineSettings> getSettings() {
+        try {
+            MachineSettings settings = machineService.getMachineSettings();
+            if (settings == null) {
+                return Result.error("获取设置失败：未找到设置信息");
+            }
+            return Result.success(settings);
+        } catch (Exception e) {
+            return Result.error("获取设置失败: " + e.getMessage());
+        }
     }
 
     // 新增方法以处理前端请求
@@ -52,7 +59,41 @@ public class MachineController {
     // 添加重置接口
     @PostMapping("/reset")
     public Result reset() {
-        return getSettings();
+        try {
+            // 获取默认设置并保存
+            MachineSettings defaultSettings = new MachineSettings();
+            // 设置默认值
+            defaultSettings.setAutoClean(false);
+            defaultSettings.setNightMode(false);
+            defaultSettings.setOpenLockTime(500);  // 默认500毫秒
+            defaultSettings.setSoupMaxTemperature(85);  // 默认85度
+            defaultSettings.setSoupMinTemperature(65);  // 默认65度
+            defaultSettings.setSoupQuantity(100);  // 默认100脉冲
+            defaultSettings.setFanVentilationTime(300);  // 默认300秒
+            defaultSettings.setElectricalBoxFanTemp(40);  // 默认40度
+            defaultSettings.setElectricalBoxFanHumidity(80);  // 默认80%
+            
+            // 设置默认价格
+            defaultSettings.setPrice1(10);
+            defaultSettings.setPrice2(15);
+            defaultSettings.setPrice3(20);
+            defaultSettings.setPrice4(25);
+            defaultSettings.setPrice5(30);
+            
+            // 设置默认配料重量
+            defaultSettings.setIngredient1Weight(100);
+            defaultSettings.setIngredient2Weight(100);
+            defaultSettings.setIngredient3Weight(100);
+            defaultSettings.setIngredient4Weight(100);
+            defaultSettings.setIngredient5Weight(100);
+
+            // 保存默认设置
+            machineService.saveSettings(defaultSettings);
+            
+            return Result.success("重置成功");
+        } catch (Exception e) {
+            return Result.error("重置失败: " + e.getMessage());
+        }
     }
 
     @DeleteMapping("/alerts/clear")
