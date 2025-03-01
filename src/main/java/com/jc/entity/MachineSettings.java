@@ -4,6 +4,10 @@ import lombok.Data;
 
 @Data
 public class MachineSettings {
+    // 基本设置
+    private Boolean autoClean;     // 自动清洗
+    private Boolean nightMode;     // 夜间模式
+    
     // 开门锁设置
     private Integer openLockTime;  // 开门锁通电时间(毫秒)
     

@@ -16,89 +16,89 @@
 
       <!-- 开门锁通电时间 -->
       <el-form-item label="开门锁通电时间">
-        <el-input-number v-model="form.openLockTime" :min="0" :max="120" />
+        <el-input-number v-model="form.openLockTime" :min="0" :max="255" />
         <span>毫秒</span>
-        <span style="color: red;">（一般为50，不要随意更改，否则烧坏锁）</span>
+        <span style="color: red;">（一般为50，不要随意更改，否则烧坏锁。取值范围：0-255）</span>
       </el-form-item>
 
       <!-- 汤温度设置 -->
       <el-form-item label="汤最高温度">
-        <el-input-number v-model="form.soupMaxTemperature" :min="0" :max="100" />
-        <span>℃（出汤温度）</span>
+        <el-input-number v-model="form.soupMaxTemperature" :min="0" :max="255" />
+        <span>℃（出汤温度，取值范围：0-255）</span>
       </el-form-item>
       <el-form-item label="汤最低温度">
-        <el-input-number v-model="form.soupMinTemperature" :min="0" :max="100" />
-        <span>℃（保温温度）</span>
+        <el-input-number v-model="form.soupMinTemperature" :min="0" :max="255" />
+        <span>℃（保温温度，取值范围：0-255）</span>
       </el-form-item>
 
       <!-- 汤数量 -->
       <el-form-item label="汤数量">
-        <el-input-number v-model="form.soupQuantity" :min="0" />
-        <span>脉冲（出汤量多少值）</span>
+        <el-input-number v-model="form.soupQuantity" :min="0" :max="255" />
+        <span>脉冲（出汤量多少值，取值范围：0-255）</span>
       </el-form-item>
 
       <!-- 排油烟风扇通风的时间 -->
       <el-form-item label="排油烟风扇通风的时间">
-        <el-input-number v-model="form.fanVentilationTime" :min="0" />
-        <span>秒</span>
+        <el-input-number v-model="form.fanVentilationTime" :min="0" :max="255" />
+        <span>秒（取值范围：0-255）</span>
       </el-form-item>
 
       <!-- 电柜风扇通风的温度值 -->
       <el-form-item label="电柜风扇通风的温度值">
-        <el-input-number v-model="form.electricalBoxFanTemp" :min="0" :max="100" />
-        <span>℃（电箱到达温度会启动风扇）</span>
+        <el-input-number v-model="form.electricalBoxFanTemp" :min="0" :max="255" />
+        <span>℃（电箱到达温度会启动风扇，取值范围：0-255）</span>
       </el-form-item>
 
       <!-- 电柜风扇通风的湿度值 -->
       <el-form-item label="电柜风扇通风的湿度值">
-        <el-input-number v-model="form.electricalBoxFanHumidity" :min="0" :max="100" />
-        <span>%（电箱到达湿度会启动风扇）</span>
+        <el-input-number v-model="form.electricalBoxFanHumidity" :min="0" :max="255" />
+        <span>%（电箱到达湿度会启动风扇，取值范围：0-255）</span>
       </el-form-item>
 
       <!-- 价格设置 -->
       <h4>价格设置</h4>
       <el-form-item label="价格1">
-        <el-input-number v-model="form.price1" :min="0" />
-        <span>份（价格1的份量）</span>
+        <el-input-number v-model="form.price1" :min="0" :max="255" />
+        <span>份（价格1的份量，取值范围：0-255）</span>
       </el-form-item>
       <el-form-item label="价格2">
-        <el-input-number v-model="form.price2" :min="0" />
-        <span>份（价格2的份量）</span>
+        <el-input-number v-model="form.price2" :min="0" :max="255" />
+        <span>份（价格2的份量，取值范围：0-255）</span>
       </el-form-item>
       <el-form-item label="价格3">
-        <el-input-number v-model="form.price3" :min="0" />
-        <span>份（价格3的份量）</span>
+        <el-input-number v-model="form.price3" :min="0" :max="255" />
+        <span>份（价格3的份量，取值范围：0-255）</span>
       </el-form-item>
       <el-form-item label="价格4">
-        <el-input-number v-model="form.price4" :min="0" />
-        <span>份（价格4的份量）</span>
+        <el-input-number v-model="form.price4" :min="0" :max="255" />
+        <span>份（价格4的份量，取值范围：0-255）</span>
       </el-form-item>
       <el-form-item label="价格5">
-        <el-input-number v-model="form.price5" :min="0" />
-        <span>份（价格5的份量）</span>
+        <el-input-number v-model="form.price5" :min="0" :max="255" />
+        <span>份（价格5的份量，取值范围：0-255）</span>
       </el-form-item>
 
       <!-- 配料设置 -->
       <h4>配料设置</h4>
       <el-form-item label="配料1重量">
-        <el-input-number v-model="form.ingredient1Weight" :min="0" />
-        <span>g（0为不用称重 ）</span>
+        <el-input-number v-model="form.ingredient1Weight" :min="0" :max="255" />
+        <span>g（0为不用称重，取值范围：0-255）</span>
       </el-form-item>
       <el-form-item label="配料2重量">
-        <el-input-number v-model="form.ingredient2Weight" :min="0" />
-        <span>g（0为不用称重 ）</span>
+        <el-input-number v-model="form.ingredient2Weight" :min="0" :max="255" />
+        <span>g（0为不用称重，取值范围：0-255）</span>
       </el-form-item>
       <el-form-item label="配料3重量">
-        <el-input-number v-model="form.ingredient3Weight" :min="0" />
-        <span>g（0为不用称重 ）</span>
+        <el-input-number v-model="form.ingredient3Weight" :min="0" :max="255" />
+        <span>g（0为不用称重，取值范围：0-255）</span>
       </el-form-item>
       <el-form-item label="配料4重量">
-        <el-input-number v-model="form.ingredient4Weight" :min="0" />
-        <span>g（0为不用称重 ）</span>
+        <el-input-number v-model="form.ingredient4Weight" :min="0" :max="255" />
+        <span>g（0为不用称重，取值范围：0-255）</span>
       </el-form-item>
       <el-form-item label="配料5重量">
-        <el-input-number v-model="form.ingredient5Weight" :min="0" />
-        <span>g（0为不用称重 ）</span>
+        <el-input-number v-model="form.ingredient5Weight" :min="0" :max="255" />
+        <span>g（0为不用称重，取值范围：0-255）</span>
       </el-form-item>
 
       <!-- 按钮组 -->

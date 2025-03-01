@@ -171,28 +171,7 @@ public class PlcServiceImpl implements DeviceHandler {
         return result.toString();
     }
 
-    // 替换VB150以后的值
-    private String replaceVB150AndAfter(String existingData, String newData) {
-        String[] parts = existingData.split(" ");
-        int vb150Index = findVB150Index(parts);
 
-        if (vb150Index != -1) {
-            for (int i = vb150Index + 1; i < parts.length; i++) {
-                parts[i] = newData; // 替换为新的数据
-            }
-        }
-        return String.join(" ", parts);
-    }
-
-    // 查找VB150的索引
-    private int findVB150Index(String[] parts) {
-        for (int i = 0; i < parts.length; i++) {
-            if (parts[i].equals("VB150")) {
-                return i;
-            }
-        }
-        return -1;
-    }
 
     // 检查字符串是否为空
     private boolean isEmpty(String value) {
@@ -229,7 +208,6 @@ public class PlcServiceImpl implements DeviceHandler {
             log.warn("没有找到已发送的PLC数据");
             return null;
         }
-//        log.info("读取到已发送的PLC数据：{}", sentData);
         return sentData;
     }
 }

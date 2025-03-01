@@ -27,8 +27,6 @@ public class MachineServiceImpl implements MachineService {
     private static final String PLC_DATA_START = "00";
     private static final String PLC_DATA_END = "FF";
     private static final String STATUS_RUNNING = "running";
-    private static final String STATUS_STANDBY = "standby";
-    private static final String STATUS_STOPPED = "stopped";
     private static final String STATUS_NORMAL = "正常运行";
     private static final String STATUS_STANDBY_MODE = "待机模式";
     private static final String STATUS_STOP = "停止运行";
@@ -66,6 +64,8 @@ public class MachineServiceImpl implements MachineService {
         currentStatus.setStatus(STATUS_RUNNING);
 
         currentSettings = new MachineSettings();
+        currentSettings.setAutoClean(false);
+        currentSettings.setNightMode(false);
         currentSettings.setOpenLockTime(50);
         currentSettings.setSoupMaxTemperature(90);
         currentSettings.setSoupMinTemperature(70);
@@ -131,47 +131,131 @@ public class MachineServiceImpl implements MachineService {
     @Override
     public Result saveSettings(MachineSettings settings) {
         try {
+            // 验证设置参数的合法性
             validateSettings(settings);
-            //todo  从redis中读取数据，然后把设置新数据发送过去，注意还有制作数据是一起发的
-            String readSentData = plcServiceImpl.readSentData();
-            String[] split = readSentData.split(" ");
-            log.info("从redis中读取数量：{}",split.length);
-            String dataBeforeVB50 = String.join(" ", Arrays.copyOfRange(split, 0, 50));
-            log.info("取到前50位数量：{}",dataBeforeVB50.split(" ").length);
-            // 将设置值转换为两位16进制字符串
-            String openLockTimeHex = String.format("%02X", settings.getOpenLockTime());
-            String soupMaxTempHex = String.format("%02X", settings.getSoupMaxTemperature());
-            String soupMinTempHex = String.format("%02X", settings.getSoupMinTemperature());
-            String soupQuantityHex = String.format("%02X", settings.getSoupQuantity());
-            String fanVentTimeHex = String.format("%02X", settings.getFanVentilationTime());
-            String elecBoxFanTempHex = String.format("%02X", settings.getElectricalBoxFanTemp());
-            String elecBoxFanHumidityHex = String.format("%02X", settings.getElectricalBoxFanHumidity());
-            // 构建VB100-VB199的数据，共100个字节
-            StringBuilder vbData = new StringBuilder();
-            // 添加设置数据
-            vbData.append(openLockTimeHex).append(" ")
-                  .append(soupMaxTempHex).append(" ")
-                  .append(soupMinTempHex).append(" ")
-                  .append(soupQuantityHex).append(" ")
-                  .append(fanVentTimeHex).append(" ")
-                  .append(elecBoxFanTempHex).append(" ")
-                  .append(elecBoxFanHumidityHex).append(" ");
             
-            // 补充剩余字节为100，直到第199个字节
-            int currentLength = 7; // 已经添加了7个字节
-            while (currentLength < 49) {
-                vbData.append("00").append(" ");
-                currentLength++;
-            }            
-            // 最后一位为FF
-            vbData.append("FF");
-            String[] s1 = vbData.toString().split(" ");
-            log.info("后面组合数量：{}",s1.length);
-            // 将构建好的VB100-VB199数据存入Redis的发送区
-            String s = dataBeforeVB50 + " " + vbData;
-            log.info("最后存入redis的数量：{}",s.split(" ").length);
-            redisTemplate.opsForValue().set(PlcServiceImpl.PLC_SEND_DATA_KEY, s);
-            plcServiceImpl.sendDataToPlc();
+            // 从redis中读取当前PLC数据
+            String currentPlcData = plcServiceImpl.readSentData();
+            if (currentPlcData == null || currentPlcData.isEmpty()) {
+                log.error("无法从Redis获取PLC数据");
+                return Result.error("无法获取PLC数据");
+            }
+            
+            // 规范化数据格式：确保每个字节之间只有一个空格
+            currentPlcData = currentPlcData.replaceAll("\\s+", " ").trim();
+            
+            // 分割数据
+            String[] dataArray = currentPlcData.split(" ");
+            log.info("从Redis读取到PLC数据，共{}字节", dataArray.length);
+            
+            // 检查数据格式
+            if (dataArray.length < 2 || !dataArray[0].equals(PLC_DATA_START) || !dataArray[dataArray.length - 1].equals(PLC_DATA_END)) {
+                log.error("PLC数据格式错误：开头必须为00，结尾必须为FF");
+                return Result.error("PLC数据格式错误");
+            }
+            
+            // 处理可能的多字节表示问题
+            List<String> normalizedData = new ArrayList<>();
+            for (String byteStr : dataArray) {
+                // 如果字节字符串长度超过2，则可能是多字节表示
+                if (byteStr.length() > 2) {
+                    // 每两个字符分割成一个字节
+                    for (int i = 0; i < byteStr.length(); i += 2) {
+                        if (i + 2 <= byteStr.length()) {
+                            normalizedData.add(byteStr.substring(i, i + 2));
+                        } else {
+                            normalizedData.add(byteStr.substring(i));
+                        }
+                    }
+                } else {
+                    normalizedData.add(byteStr);
+                }
+            }
+            
+            // 更新数据数组
+            dataArray = normalizedData.toArray(new String[0]);
+            log.info("规范化后的PLC数据，共{}字节", dataArray.length);
+            
+            // 保留前50位数据（VB0-VB49）
+            if (dataArray.length < 50) {
+                log.error("PLC数据格式错误，长度不足50字节");
+                return Result.error("PLC数据格式错误");
+            }
+            String dataBeforeVB50 = String.join(" ", Arrays.copyOfRange(dataArray, 0, 50));
+            
+            // 将设置值转换为两位16进制字符串
+            StringBuilder settingsData = new StringBuilder();
+            
+            // 添加基本设置数据（VB150-VB199）
+            settingsData.append(String.format("%02X", settings.getAutoClean() ? 1 : 0)).append(" ")
+                      .append(String.format("%02X", settings.getNightMode() ? 1 : 0)).append(" ")
+                      .append(String.format("%02X", settings.getOpenLockTime())).append(" ")
+                      .append(String.format("%02X", settings.getSoupMaxTemperature())).append(" ")
+                      .append(String.format("%02X", settings.getSoupMinTemperature())).append(" ")
+                      .append(String.format("%02X", settings.getSoupQuantity())).append(" ")
+                      .append(String.format("%02X", settings.getFanVentilationTime())).append(" ")
+                      .append(String.format("%02X", settings.getElectricalBoxFanTemp())).append(" ")
+                      .append(String.format("%02X", settings.getElectricalBoxFanHumidity())).append(" ");
+            
+            // 添加价格设置（VB57-VB61）
+            settingsData.append(String.format("%02X", settings.getPrice1())).append(" ")
+                      .append(String.format("%02X", settings.getPrice2())).append(" ")
+                      .append(String.format("%02X", settings.getPrice3())).append(" ")
+                      .append(String.format("%02X", settings.getPrice4())).append(" ")
+                      .append(String.format("%02X", settings.getPrice5())).append(" ");
+            
+            // 添加配料重量设置（VB62-VB71，每个配料用2字节表示）
+            appendTwoByteHex(settingsData, settings.getIngredient1Weight());
+            appendTwoByteHex(settingsData, settings.getIngredient2Weight());
+            appendTwoByteHex(settingsData, settings.getIngredient3Weight());
+            appendTwoByteHex(settingsData, settings.getIngredient4Weight());
+            appendTwoByteHex(settingsData, settings.getIngredient5Weight());
+            
+            // 计算已添加的字节数
+            int currentBytes = settingsData.toString().split(" ").length;
+            
+            // 如果原始数据长度超过100（即有VB100及以后的数据）
+            if (dataArray.length > 100) {
+                // 补充剩余字节直到VB99（共50个字节，VB50-VB99）
+                int bytesToAdd = 50 - currentBytes;
+                
+                for (int i = 0; i < bytesToAdd; i++) {
+                    settingsData.append("00").append(" ");
+                }
+                
+                // 保留VB100及以后的数据（不包括最后的FF）
+                String dataAfterVB99 = String.join(" ", Arrays.copyOfRange(dataArray, 100, dataArray.length - 1));
+                
+                // 合并数据：前50字节 + 中间50字节 + 后面的字节 + 结束标记FF
+                String finalPlcData = dataBeforeVB50 + " " + settingsData.toString().trim() + " " + dataAfterVB99 + " " + PLC_DATA_END;
+                log.info("准备发送到PLC的数据共{}字节", finalPlcData.split(" ").length);
+                
+                // 存入Redis并发送到PLC
+                redisTemplate.opsForValue().set(PlcServiceImpl.PLC_SEND_DATA_KEY, finalPlcData);
+                plcServiceImpl.sendDataToPlc();
+            } else {
+                // 如果原始数据长度不超过100，则只需要补充到VB99
+                int bytesToAdd = 50 - currentBytes;
+                
+                for (int i = 0; i < bytesToAdd; i++) {
+                    settingsData.append("00").append(" ");
+                }
+                
+                // 添加结束标记FF
+                settingsData.append(PLC_DATA_END);
+                
+                // 合并数据
+                String finalPlcData = dataBeforeVB50 + " " + settingsData.toString().trim();
+                log.info("准备发送到PLC的数据共{}字节", finalPlcData.split(" ").length);
+                
+                // 存入Redis并发送到PLC
+                redisTemplate.opsForValue().set(PlcServiceImpl.PLC_SEND_DATA_KEY, finalPlcData);
+                plcServiceImpl.sendDataToPlc();
+            }
+            
+            // 更新当前设置
+            currentSettings = settings;
+            
             return Result.success(settings);
         } catch (Exception e) {
             log.error("保存设置失败: {}", e.getMessage());
@@ -183,26 +267,53 @@ public class MachineServiceImpl implements MachineService {
      * 验证设置参数的合法性
      */
     private void validateSettings(MachineSettings settings) {
+        // 验证所有数值是否在0-255范围内
+        validateRange(settings.getOpenLockTime(), "开门锁通电时间");
+        validateRange(settings.getSoupMaxTemperature(), "汤最高温度");
+        validateRange(settings.getSoupMinTemperature(), "汤最低温度");
+        validateRange(settings.getSoupQuantity(), "汤数量");
+        validateRange(settings.getFanVentilationTime(), "排油烟风扇通风时间");
+        validateRange(settings.getElectricalBoxFanTemp(), "电柜风扇通风温度");
+        validateRange(settings.getElectricalBoxFanHumidity(), "电柜风扇通风湿度");
+        
+        // 验证价格设置
+        validateRange(settings.getPrice1(), "价格1");
+        validateRange(settings.getPrice2(), "价格2");
+        validateRange(settings.getPrice3(), "价格3");
+        validateRange(settings.getPrice4(), "价格4");
+        validateRange(settings.getPrice5(), "价格5");
+        
+        // 验证配料重量设置
+        validateRange(settings.getIngredient1Weight(), "配料1重量");
+        validateRange(settings.getIngredient2Weight(), "配料2重量");
+        validateRange(settings.getIngredient3Weight(), "配料3重量");
+        validateRange(settings.getIngredient4Weight(), "配料4重量");
+        validateRange(settings.getIngredient5Weight(), "配料5重量");
 
-        if (settings.getOpenLockTime() < 0 || settings.getOpenLockTime() > 120) {
-            throw new IllegalArgumentException("开门锁通电时间超出范围");
-        }
-
+        // 验证温度逻辑
         if (settings.getSoupMaxTemperature() < settings.getSoupMinTemperature()) {
             throw new IllegalArgumentException("汤最高温度不能低于最低温度");
         }
+    }
 
-        if (settings.getSoupMaxTemperature() < 0 || settings.getSoupMaxTemperature() > 100) {
-            throw new IllegalArgumentException("汤最高温度超出范围");
-        }
-
-        if (settings.getSoupMinTemperature() < 0) {
-            throw new IllegalArgumentException("汤最低温度超出范围");
+    /**
+     * 验证数值是否在0-255范围内
+     */
+    private void validateRange(int value, String fieldName) {
+        if (value < 0 || value > 255) {
+            throw new IllegalArgumentException(fieldName + "必须在0-255范围内");
         }
     }
 
-
-
+    /**
+     * 将整数值转换为两个字节的16进制字符串并添加到StringBuilder
+     */
+    private void appendTwoByteHex(StringBuilder sb, int value) {
+        // 高字节
+        sb.append(String.format("%02X", (value >> 8) & 0xFF)).append(" ");
+        // 低字节
+        sb.append(String.format("%02X", value & 0xFF)).append(" ");
+    }
 
     // ==================== 机器状态相关方法 ====================
 
@@ -870,8 +981,7 @@ public class MachineServiceImpl implements MachineService {
                 status.setRunTime(Integer.parseInt(data[32] + data[33], 16));
 
                 // 解析自动清洗和夜间模式设置
-                if (data.length <= 53) {
-                } else {
+                if (data.length > 53) {
                     status.setAutoClean(Integer.parseInt(data[52], 16) != 0);
                     status.setNightMode(Integer.parseInt(data[53], 16) != 0);
                 }
