@@ -4,6 +4,7 @@ import com.jc.config.Result;
 import com.jc.entity.MachineSettings;
 import com.jc.entity.MachineStatus;
 import com.jc.service.MachineService; // 导入服务接口
+import com.jc.service.impl.PlcServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,13 +16,15 @@ public class MachineController {
 
     @Autowired
     private MachineService machineService; // 注入服务
+    @Autowired
+    private PlcServiceImpl plcService;
 
 
     @PostMapping("/save")
     public Result saveSettings(@RequestBody MachineSettings settings) {
         try {
             machineService.saveSettings(settings); // 使用服务保存设置
-            return Result.success("设置已保存");
+            return Result.success("设置成功");
         } catch (Exception e) {
             return Result.error("保存设置失败: " + e.getMessage());
         }
@@ -63,9 +66,9 @@ public class MachineController {
 
     // 处理上位机写入数据请求
     @PostMapping("/writeData")
-    public Result writeData(@RequestBody String data) {
+    public Result writeData() {
         try {
-            return machineService.sendDataToPLC(data);
+            return plcService.sendDataToPlc();
         } catch (IllegalArgumentException e) {
             return Result.error(e.getMessage());
         }

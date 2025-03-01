@@ -1,5 +1,9 @@
 package com.jc.service.impl;
 
+import com.jc.config.IpConfig;
+import com.jc.config.Result;
+import com.jc.netty.client.NettyClientHandler;
+import com.jc.netty.server.NettyServerHandler;
 import com.jc.service.DeviceHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +26,13 @@ public class PlcServiceImpl implements DeviceHandler {
 
     private static final String PLC_DATA_START = "00";
     private static final String PLC_DATA_END = "FF";
-    private static final String PLC_DATA_KEY = "plc:data";
-    private static final String PLC_SEND_DATA_KEY = "plc:send:data";
+    public static final String PLC_DATA_KEY = "plc:data";
+    public static final String PLC_SEND_DATA_KEY = "plc:send:data";
     public static final String VB150_KEY = "VB150";
+    @Autowired
+    private NettyServerHandler nettyServerHandler;
+    @Autowired
+    private IpConfig ipConfig;
 
     /**
      * 处理消息
@@ -40,7 +48,7 @@ public class PlcServiceImpl implements DeviceHandler {
             return;
         }
 
-//        log.info("收到有效的PLC数据：{}", message);
+        log.info("收到有效的PLC数据：{}", message);
         storePlcData(cleanMessage);
         syncVB50ToVB150(cleanMessage);
     }
@@ -111,18 +119,6 @@ public class PlcServiceImpl implements DeviceHandler {
 
 
 
-    // 更新发送给PLC的数据
-    private void updateSendData(String newData) {
-        String existingData = redisTemplate.opsForValue().get(PLC_SEND_DATA_KEY);
-        if (!isEmpty(existingData)) {
-            String updatedData = replaceVB150AndAfter(existingData, newData);
-            redisTemplate.opsForValue().set(PLC_SEND_DATA_KEY, updatedData);
-            log.info("已更新plc:send:data: {}", updatedData);
-        } else {
-            redisTemplate.opsForValue().set(PLC_SEND_DATA_KEY, newData);
-            log.info("已将数据发送到PLC: {}", newData);
-        }
-    }
 
 
     // 同步VB50到VB150
@@ -151,24 +147,6 @@ public class PlcServiceImpl implements DeviceHandler {
 //        log.info("已将VB50的值同步到VB150: {}", vb50Value);
     }
 
-    /**
-     * 截取数据到VB50（包含VB50）
-     * @param data PLC数据
-     * @return 截取到VB50的数据
-     */
-    private String extractDataUpToVB50(String data) {
-        String[] parts = data.split(" ");
-        StringBuilder result = new StringBuilder();
-        
-        for (int i = 0; i <= 50 && i < parts.length; i++) {
-            result.append(parts[i]);
-            if (i < 50 && i < parts.length - 1) {
-                result.append(" ");
-            }
-        }
-        
-        return result.toString();
-    }
 
     /**
      * 从PLC消息中提取指定位置开始的值
@@ -223,19 +201,22 @@ public class PlcServiceImpl implements DeviceHandler {
 
     /**
      * 发送数据到PLC
-     * @param data 要发送的数据
      */
-    public void sendDataToPlc(String data) {
-        String cleanData = data.trim();
-        log.info("准备发送数据到PLC：{}", cleanData);
+    public Result sendDataToPlc() {
+        // 从Redis获取要发送的数据
+        String dataToSend = redisTemplate.opsForValue().get(PLC_SEND_DATA_KEY);
+        if (dataToSend == null || dataToSend.isEmpty()) {
+            log.warn("没有找到要发送的PLC数据");
+            return Result.error("没有找到要发送的PLC数据");
+        }
         
-        // 更新发送数据
-        updateSendData(cleanData);
+        // 去掉数据中的空格
+        String cleanedData = dataToSend.replaceAll(" ", "");
         
-        // 设置发送状态
-        sendOrderStatus = true;
-        
-        log.info("数据已成功发送到PLC");
+        // 使用Netty发送数据
+        nettyServerHandler.sendMessageToClient(ipConfig.getPlc(), cleanedData, true);
+        log.info("数据已成功发送到PLC: {}", cleanedData);
+        return Result.success();
     }
 
     /**

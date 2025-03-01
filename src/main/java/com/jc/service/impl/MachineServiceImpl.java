@@ -26,10 +26,6 @@ public class MachineServiceImpl implements MachineService {
     private static final String REDIS_ALERTS_KEY = "plc:alerts";
     private static final String PLC_DATA_START = "00";
     private static final String PLC_DATA_END = "FF";
-    private static final int MIN_WEIGHT = 50;
-    private static final int MAX_WEIGHT = 200;
-    private static final int MIN_RUN_TIME = 1;
-    private static final int MAX_RUN_TIME = 10;
     private static final String STATUS_RUNNING = "running";
     private static final String STATUS_STANDBY = "standby";
     private static final String STATUS_STOPPED = "stopped";
@@ -137,9 +133,45 @@ public class MachineServiceImpl implements MachineService {
         try {
             validateSettings(settings);
             //todo  从redis中读取数据，然后把设置新数据发送过去，注意还有制作数据是一起发的
-
-
-
+            String readSentData = plcServiceImpl.readSentData();
+            String[] split = readSentData.split(" ");
+            log.info("从redis中读取数量：{}",split.length);
+            String dataBeforeVB50 = String.join(" ", Arrays.copyOfRange(split, 0, 50));
+            log.info("取到前50位数量：{}",dataBeforeVB50.split(" ").length);
+            // 将设置值转换为两位16进制字符串
+            String openLockTimeHex = String.format("%02X", settings.getOpenLockTime());
+            String soupMaxTempHex = String.format("%02X", settings.getSoupMaxTemperature());
+            String soupMinTempHex = String.format("%02X", settings.getSoupMinTemperature());
+            String soupQuantityHex = String.format("%02X", settings.getSoupQuantity());
+            String fanVentTimeHex = String.format("%02X", settings.getFanVentilationTime());
+            String elecBoxFanTempHex = String.format("%02X", settings.getElectricalBoxFanTemp());
+            String elecBoxFanHumidityHex = String.format("%02X", settings.getElectricalBoxFanHumidity());
+            // 构建VB100-VB199的数据，共100个字节
+            StringBuilder vbData = new StringBuilder();
+            // 添加设置数据
+            vbData.append(openLockTimeHex).append(" ")
+                  .append(soupMaxTempHex).append(" ")
+                  .append(soupMinTempHex).append(" ")
+                  .append(soupQuantityHex).append(" ")
+                  .append(fanVentTimeHex).append(" ")
+                  .append(elecBoxFanTempHex).append(" ")
+                  .append(elecBoxFanHumidityHex).append(" ");
+            
+            // 补充剩余字节为100，直到第199个字节
+            int currentLength = 7; // 已经添加了7个字节
+            while (currentLength < 49) {
+                vbData.append("00").append(" ");
+                currentLength++;
+            }            
+            // 最后一位为FF
+            vbData.append("FF");
+            String[] s1 = vbData.toString().split(" ");
+            log.info("后面组合数量：{}",s1.length);
+            // 将构建好的VB100-VB199数据存入Redis的发送区
+            String s = dataBeforeVB50 + " " + vbData;
+            log.info("最后存入redis的数量：{}",s.split(" ").length);
+            redisTemplate.opsForValue().set(PlcServiceImpl.PLC_SEND_DATA_KEY, s);
+            plcServiceImpl.sendDataToPlc();
             return Result.success(settings);
         } catch (Exception e) {
             log.error("保存设置失败: {}", e.getMessage());
@@ -164,21 +196,11 @@ public class MachineServiceImpl implements MachineService {
             throw new IllegalArgumentException("汤最高温度超出范围");
         }
 
-        if (settings.getSoupMinTemperature() < 0 || settings.getSoupMinTemperature() > 100) {
+        if (settings.getSoupMinTemperature() < 0) {
             throw new IllegalArgumentException("汤最低温度超出范围");
         }
     }
 
-    /**
-     * 验证运行状态是否有效
-     */
-    private boolean isValidStatus(String status) {
-        return status != null && (
-                status.equals(STATUS_RUNNING) ||
-                        status.equals(STATUS_STANDBY) ||
-                        status.equals(STATUS_STOPPED)
-        );
-    }
 
 
 
@@ -647,13 +669,9 @@ public class MachineServiceImpl implements MachineService {
                 String name = entry.getValue();
                 String status = getPlcStatus(pointId);
 
-                if (status != null) {
-                    OutputPoint point = new OutputPoint(name, pointId, status);
-                    outputPoints.add(point);
-                    log.debug("添加输出点: {}, 状态: {}", name, status);
-                } else {
-                    log.warn("无法获取输出点状态: {}", pointId);
-                }
+                OutputPoint point = new OutputPoint(name, pointId, status);
+                outputPoints.add(point);
+                log.debug("添加输出点: {}, 状态: {}", name, status);
             }
         } catch (Exception e) {
             log.error("获取输出点列表失败: {}", e.getMessage(), e);
@@ -808,25 +826,7 @@ public class MachineServiceImpl implements MachineService {
         }
     }
 
-    // ==================== PLC通信相关方法 ====================
-    @Override
-    public Result sendDataToPLC(String data) {
-        // 实现发送数据到PLC的逻辑
-        // 例如，您可以从Redis获取相关数据并构建要发送的数据包
-        String vb150Data = redisTemplate.opsForValue().get(PlcServiceImpl.VB150_KEY);
-        if (vb150Data == null) {
-            log.warn("未能从Redis获取VB150数据");
-            return Result.error("未能获取VB150数据");
-        }
 
-        // 构建要发送的数据包
-        String completeData = String.join(" ", data, vb150Data); // 假设数据之间用空格分隔
-
-        // 调用PlcServiceImpl发送数据
-        plcServiceImpl.sendDataToPlc(completeData); // 确保您有这个调用
-
-        return Result.success("数据已成功发送到PLC");
-    }
 
     @Override
     public MachineStatus getMachineSettings() {
@@ -864,59 +864,48 @@ public class MachineServiceImpl implements MachineService {
                 }
                 
                 // 解析重量设置
-                if (data.length > 26) {
-                    status.setWeight(Integer.parseInt(data[26], 16));
-                }
-                
+                status.setWeight(Integer.parseInt(data[26], 16));
+
                 // 解析运行时间
-                if (data.length > 33) {
-                    status.setRunTime(Integer.parseInt(data[32] + data[33], 16));
-                }
-                
+                status.setRunTime(Integer.parseInt(data[32] + data[33], 16));
+
                 // 解析自动清洗和夜间模式设置
-                if (data.length > 53) {
+                if (data.length <= 53) {
+                } else {
                     status.setAutoClean(Integer.parseInt(data[52], 16) != 0);
                     status.setNightMode(Integer.parseInt(data[53], 16) != 0);
                 }
-                
+
                 // 解析机器人状态
-                if (data.length > 16) {
-                    status.setRobotStatus(getRobotStatusDescription(
-                        Integer.parseInt(data[16], 16)));
-                }
-                
+                status.setRobotStatus(getRobotStatusDescription(
+                    Integer.parseInt(data[16], 16)));
+
                 // 解析机器人模式和急停状态
-                if (data.length > 10) {
-                    String robotModeBit = String.valueOf(hexToBinary(data[10]).charAt(6));
-                    String emergencyStopBit = String.valueOf(hexToBinary(data[10]).charAt(7));
-                    
-                    status.setRobotMode(robotModeBit.equals("1") ? "自动" : "手动");
-                    status.setRobotEmergencyStop(emergencyStopBit.equals("1") ? "急停" : "正常工作");
-                }
-                
+                String robotModeBit = String.valueOf(hexToBinary(data[10]).charAt(6));
+                String emergencyStopBit = String.valueOf(hexToBinary(data[10]).charAt(7));
+
+                status.setRobotMode(robotModeBit.equals("1") ? "自动" : "手动");
+                status.setRobotEmergencyStop(emergencyStopBit.equals("1") ? "急停" : "正常工作");
+
                 // 解析运行状态
-                if (data.length > 15) {
-                    int runningStatus = Integer.parseInt(data[15], 16);
-                    switch (runningStatus) {
-                        case 1:
-                            status.setStatus(STATUS_NORMAL);
-                            break;
-                        case 2:
-                            status.setStatus(STATUS_STANDBY_MODE);
-                            break;
-                        case 0:
-                            status.setStatus(STATUS_STOP);
-                            break;
-                        default:
-                            status.setStatus(STATUS_UNKNOWN);
-                    }
+                int runningStatus = Integer.parseInt(data[15], 16);
+                switch (runningStatus) {
+                    case 1:
+                        status.setStatus(STATUS_NORMAL);
+                        break;
+                    case 2:
+                        status.setStatus(STATUS_STANDBY_MODE);
+                        break;
+                    case 0:
+                        status.setStatus(STATUS_STOP);
+                        break;
+                    default:
+                        status.setStatus(STATUS_UNKNOWN);
                 }
-                
+
                 // 解析电箱状态
-                if (data.length > 17) {
-                    status.setElectricalBoxStatus(
-                        Integer.parseInt(data[17], 16));
-                }
+                status.setElectricalBoxStatus(
+                    Integer.parseInt(data[17], 16));
 
                 // 添加缺少的设置值
                 // 从currentSettings中获取这些值，因为这些是在initializeDefaultSettings()中设置的

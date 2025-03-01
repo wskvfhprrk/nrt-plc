@@ -13,8 +13,8 @@ public class PlcController {
     private PlcServiceImpl plcServiceImpl;
 
     @GetMapping("/sendData")
-    public Result sendData(String data) {
-        plcServiceImpl.sendDataToPlc(data);
+    public Result sendData() {
+        plcServiceImpl.sendDataToPlc();
         return Result.success("数据已发送到PLC");
     }
 
