@@ -75,7 +75,7 @@
       </el-form-item>
       <el-form-item label="价格5">
         <el-input-number v-model="form.price5" :min="0" :max="255" />
-        <span>份（价格5的份量，取值范围：0-255）</span>
+        <span>份（备用，取值范围：0-255，可以为0）</span>
       </el-form-item>
 
       <!-- 配料设置 -->
