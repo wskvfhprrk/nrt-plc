@@ -50,21 +50,21 @@
           <el-form :model="form" label-width="220px">
             <el-form-item label="选择食谱">
               <el-radio-group v-model="form.selectedRecipe">
-                <el-radio-button v-for="method in recipes" :key="method.key" :label="method.key">
+                <el-radio-button v-for="method in recipes" :key="method.key" :value="method.key">
                   {{ method.label }}
                 </el-radio-button>
               </el-radio-group>
             </el-form-item>
             <el-form-item label="选择份量">
               <el-radio-group v-model="form.selectedPrice">
-                <el-radio-button v-for="method in prices" :key="method.key" :label="method.key">
+                <el-radio-button v-for="method in prices" :key="method.key" :value="method.key">
                   {{ method.label }}
                 </el-radio-button>
               </el-radio-group>
             </el-form-item>
             <el-form-item label="选择口味">
               <el-radio-group v-model="form.selectedSpice">
-                <el-radio-button v-for="method in spices" :key="method.key" :label="method.key">
+                <el-radio-button v-for="method in spices" :key="method.key" :value="method.key">
                   {{ method.label }}
                 </el-radio-button>
               </el-radio-group>
@@ -83,11 +83,10 @@
             </el-form-item>
             <el-form-item label="支付方式">
               <el-radio-group v-model="form.paymentMethod">
-                <el-radio-button v-for="method in paymentMethods" :key="method.key" :label="method.key">
+                <el-radio-button v-for="method in paymentMethods" :key="method.key" :value="method.key">
                   {{ method.label }}
                 </el-radio-button>
               </el-radio-group>
-
             </el-form-item>
           </el-form>
           <div class="button-container">
@@ -255,40 +254,61 @@ export default {
     },
     //websocket连接
     connectWebSocket() {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const host = window.location.host;
-      this.ws = new WebSocket(`${protocol}//${host}/ws`);
-      console.log("连接websocket……")
-      this.ws.onmessage = (event) => {
-        // console.log(event.data)
-        if (event.data === 'qrSuccess') {
-          this.fetchQrData();
-        }
-        if (event.data === 'paySuccess') {
-          this.qrCodeVisible = false;
-          //更新订单
-          this.fetchOrderData();
-          this.$message.success('请您根据订单编号和提示注意取餐！')
-        }
-        if (event.data === 'getKeySuccess') {
-          this.$message.success("获取密钥成功");
-        }
-        if (event.data === 'failedToRetrievePassword') {
-          this.$message.error("获取密钥失败,密码错误");
-        }
-      };
+      // 直接连接到后端WebSocket服务器
+      // 使用实际的后端服务器地址，而不是前端服务器地址
+      const backendUrl = 'ws://192.168.3.139:8080/ws'; // 修改为后端实际地址和端口
+      
+      try {
+        this.ws = new WebSocket(backendUrl);
+        console.log("正在连接WebSocket服务器:", backendUrl);
+        
+        this.ws.onmessage = (event) => {
+          console.log("收到WebSocket消息:", event.data);
+          if (event.data === 'qrSuccess') {
+            this.fetchQrData();
+          }
+          if (event.data === 'paySuccess') {
+            this.qrCodeVisible = false;
+            //更新订单
+            this.fetchOrderData();
+            this.$message.success('请您根据订单编号和提示注意取餐！')
+          }
+          if (event.data === 'getKeySuccess') {
+            this.$message.success("获取密钥成功");
+          }
+          if (event.data === 'failedToRetrievePassword') {
+            this.$message.error("获取密钥失败,密码错误");
+          }
+        };
 
-      this.ws.onopen = () => {
-        console.log("WebSocket连接成功");
-        console.log("WebSocket readyState:", this.ws.readyState);
-      };
-      this.ws.onclose = () => {
-        console.log("WebSocket连接关闭");
-        console.log("WebSocket readyState:", this.ws.readyState);
-      };
-      this.ws.onerror = (error) => {
-        console.error("WebSocket error:", error);
-      };
+        this.ws.onopen = () => {
+          console.log("WebSocket连接成功");
+          console.log("WebSocket readyState:", this.ws.readyState);
+        };
+        this.ws.onclose = () => {
+          console.log("WebSocket连接关闭");
+          console.log("WebSocket readyState:", this.ws.readyState);
+          // 连接关闭后尝试重连
+          setTimeout(() => this.reconnectWebSocket(), 3000);
+        };
+        this.ws.onerror = (error) => {
+          console.error("WebSocket error:", error);
+          this.$message.error("WebSocket连接错误，将在5秒后尝试重新连接");
+          setTimeout(() => this.connectWebSocket(), 5000);
+        };
+      } catch (error) {
+        console.error("WebSocket连接失败:", error);
+        this.$message.error("WebSocket连接失败，将在5秒后尝试重新连接");
+        setTimeout(() => this.connectWebSocket(), 5000);
+      }
+    },
+    // 添加重连方法
+    reconnectWebSocket() {
+      console.log("尝试重新连接WebSocket...");
+      if (this.ws) {
+        this.ws.close();
+      }
+      this.connectWebSocket();
     }
   },
   mounted() {
@@ -297,7 +317,16 @@ export default {
     /*清空登陆session*/
     this.cleanSession();
     this.fetchOrderData();
-    setInterval(this.fetchOrderData, 1000);
+    this.orderDataInterval = setInterval(this.fetchOrderData, 1000);
+  },
+  beforeUnmount() {
+    // 组件卸载前清理资源
+    if (this.orderDataInterval) {
+      clearInterval(this.orderDataInterval);
+    }
+    if (this.ws) {
+      this.ws.close();
+    }
   }
 };
 </script>
@@ -325,6 +354,7 @@ export default {
   color: #333;
   margin-left: 10px;
 }
+
 
 
 html, body {

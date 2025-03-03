@@ -55,7 +55,6 @@ public class OrderController {
         order.setSelectedPrice(portionOptionsConfig.findPriceByType(orderVo.getSelectedPrice()));
 
         order.setStatus(OrderStatus.PENDING);
-//        log.info("获取订单二维码：{}",orderVo);
         //发送mqtt消息
         String topic = "message/order/" + machineCode;
         mqttProviderConfig.publishSign(0, false, topic, JSON.toJSONString(order));

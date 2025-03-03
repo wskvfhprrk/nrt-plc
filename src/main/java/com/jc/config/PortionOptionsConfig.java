@@ -48,13 +48,13 @@ public class PortionOptionsConfig {
     public int findPriceByType(String type) {
         switch (type.toLowerCase()) {
             case "small":
-                return small != null ? small.getPrice() : 0;
+                return small != null ? small.getPrice() : 10;
             case "mid":
-                return mid != null ? mid.getPrice() : 0;
+                return mid != null ? mid.getPrice() : 15;
             case "large":
-                return large != null ? large.getPrice() : 0;
+                return large != null ? large.getPrice() : 20;
             case "addmeat": // 修改类型名称
-                return addMeat != null ? addMeat.getPrice() : 0;
+                return addMeat != null ? addMeat.getPrice() : 30;
             default:
                 throw new IllegalArgumentException("Invalid portion type: " + type);
         }
