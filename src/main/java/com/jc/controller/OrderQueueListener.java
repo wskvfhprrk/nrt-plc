@@ -20,14 +20,13 @@ public class OrderQueueListener {
     @Autowired
     private TaskCoordinator taskCoordinator;
     @Autowired
-    private PlcServiceImpl signalAcquisitionDeviceGatewayService;
+    private PlcServiceImpl plcService;
 
 
     // 每秒钟检查一次队列中的订单
     @Scheduled(cron = "0/1 * * * * ?") // 1秒
     public void checkAndProcessOrders() {
-        signalAcquisitionDeviceGatewayService.sendOrderStatus = false;
-        //取出订单时机——有订单并且在编号为1或4工位时 并且机器人复位情况下才可以
+        plcService.sendOrderStatus = false;
         if (redisQueueService.getQueueSize() > 0) {
             try {
                 taskCoordinator.executeOrder();
