@@ -8,9 +8,6 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 
 /**
  * 接收者客户端配置
@@ -53,8 +50,6 @@ public class MqttConsumerConfig {
             options.setKeepAliveInterval(20);
             //设置遗嘱消息的话题，若客户端和服务器之间的连接意外断开，服务器将发布客户端的遗嘱信息
             options.setWill("willTopic", (mqttConfig.getListen_id() + "与服务器断开连接").getBytes(), 0, false);
-//            //断开重连
-//            options.setAutomaticReconnect(true);
             //设置回调
             client.setCallback(mqttConsumerCallBack);
             client.connect(options);
