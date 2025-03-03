@@ -26,6 +26,9 @@
         <el-menu-item index="4" @click="goTo('salesStatistics')">
           销售统计
         </el-menu-item>
+        <el-menu-item index="5" @click="goTo('/setAccount')">
+          账户设置
+        </el-menu-item>
       </el-menu-item-group>
     </el-menu>
   </div>
@@ -64,6 +67,8 @@ export default {
           return '3';
         case '/salesStatistics':
           return '4';
+        case '/setAccount':
+          return '5';
         case '/buttons':
           return '9';
         default:
