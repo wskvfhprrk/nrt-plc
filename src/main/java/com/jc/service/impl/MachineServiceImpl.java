@@ -760,10 +760,6 @@ public class MachineServiceImpl implements MachineService {
         map.put("V5.1", "气压开关");
         map.put("V5.2", "备用1");
         map.put("V5.3", "备用2");
-        map.put("V5.4", "备用3");
-        map.put("V5.5", "备用4");
-        map.put("V5.6", "备用5");
-        map.put("V5.7", "备用6");
         return map;
     }
 
