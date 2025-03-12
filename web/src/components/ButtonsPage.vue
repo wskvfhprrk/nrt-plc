@@ -1,8 +1,8 @@
 <template>
   <div class="container">
-    <!-- Robot and Machine Operations -->
+    <!-- Robot Operations -->
     <div class="button-group">
-      <h3 class="section-title">机器人和取餐</h3>
+      <h3 class="section-title">机器人操作</h3>
       <div class="button-columns">
         <div v-for="(btn, index) in buttonsGroup1" :key="`btn1-${index}`" class="button-column">
           <el-button type="primary" :style="buttonStyle" @click="openDialog(btn.id, btn.name)">
@@ -12,9 +12,9 @@
       </div>
     </div>
 
-    <!-- Turntable and Bowl Operations -->
+    <!-- Door Control -->
     <div class="button-group">
-      <h3 class="section-title">转台和碗</h3>
+      <h3 class="section-title">门锁控制</h3>
       <div class="button-columns">
         <div v-for="(btn, index) in buttonsGroup2" :key="`btn2-${index}`" class="button-column">
           <el-button type="primary" :style="buttonStyle" @click="openDialog(btn.id, btn.name)">
@@ -24,9 +24,9 @@
       </div>
     </div>
 
-    <!-- Steam and Temperature Control -->
+    <!-- Food Processing -->
     <div class="button-group">
-      <h3 class="section-title">蒸汽和温度</h3>
+      <h3 class="section-title">餐品处理</h3>
       <div class="button-columns">
         <div v-for="(btn, index) in buttonsGroup3" :key="`btn3-${index}`" class="button-column">
           <el-button type="primary" :style="buttonStyle" @click="openDialog(btn.id, btn.name)">
@@ -36,9 +36,9 @@
       </div>
     </div>
 
-    <!-- Fan and Vibration Testing -->
+    <!-- Service Control -->
     <div class="button-group">
-      <h3 class="section-title">风扇和振动</h3>
+      <h3 class="section-title">出餐控制</h3>
       <div class="button-columns">
         <div v-for="(btn, index) in buttonsGroup4" :key="`btn4-${index}`" class="button-column">
           <el-button type="primary" :style="buttonStyle" @click="openDialog(btn.id, btn.name)">
@@ -48,9 +48,9 @@
       </div>
     </div>
 
-    <!-- Testing and Weighing Operations -->
-    <div class="button-group">
-      <h3 class="section-title">称重</h3>
+    <!-- Reserved Group 5 -->
+    <div class="button-group" v-if="buttonsGroup5.length > 0">
+      <h3 class="section-title">预留组5</h3>
       <div class="button-columns">
         <div v-for="(btn, index) in buttonsGroup5" :key="`btn5-${index}`" class="button-column">
           <el-button type="primary" :style="buttonStyle" @click="openDialog(btn.id, btn.name)">
@@ -60,9 +60,9 @@
       </div>
     </div>
 
-    <!-- Ingredient Dispensing -->
-    <div class="button-group">
-      <h3 class="section-title">配料分发</h3>
+    <!-- Reserved Group 6 -->
+    <div class="button-group" v-if="buttonsGroup6.length > 0">
+      <h3 class="section-title">预留组6</h3>
       <div class="button-columns">
         <div v-for="(btn, index) in buttonsGroup6" :key="`btn6-${index}`" class="button-column">
           <el-button type="primary" :style="buttonStyle" @click="openDialog(btn.id, btn.name)">
@@ -98,44 +98,38 @@ export default {
   data() {
     return {
       buttonsGroup1: [
-        {id: 1, name: "机器人重置"},
-        {id: 2, name: "机器人取碗"},
-        {id: 3, name: "机器人出汤"},
-        {id: 4, name: "取餐口复位"},
-        {id: 5, name: "取餐口出餐"}
+        {id: 1, name: "机器人取粉丝1"},
+        {id: 2, name: "机器人取粉丝2"},
+        {id: 3, name: "机器人取粉丝3"},
+        {id: 4, name: "机器人取粉丝4"},
+        {id: 5, name: "机器人取粉丝5"},
+        {id: 6, name: "机器人取粉丝6"},
+        {id: 7, name: "机器人放碗"},
+        {id: 8, name: "机器人出汤"},
+        {id: 9, name: "机器人口汤牛肉"},
+        {id: 10, name: "机器人倒牛肉"}
       ],
       buttonsGroup2: [
-        {id: 6, name: "转台复位"},
-        {id: 7, name: "工位（数）"},
-        {id: 8, name: "碗复位"},
-        {id: 9, name: "碗向上"},
-        {id: 10, name: "碗向下"}
+        {id: 11, name: "打开门锁1"},
+        {id: 12, name: "打开门锁2"},
+        {id: 13, name: "打开门锁3"},
+        {id: 14, name: "打开门锁4"},
+        {id: 15, name: "打开门锁5"},
+        {id: 16, name: "打开门锁6"},
+        {id: 17, name: "打开门锁7"}
       ],
       buttonsGroup3: [
-        {id: 11, name: "蒸汽打开"},
-        {id: 12, name: "蒸汽关闭"},
-        {id: 13, name: "关汤蒸汽阀"},
-        {id: 14, name: "抽汤（秒）"},
-        {id: 15, name: "汤管排气（秒）"},
-        {id: 16, name: "汤加热至（度）"},
-        {id: 17, name: "碗加蒸汽（秒）"}
+        {id: 18, name: "切牛肉测试"},
+        {id: 19, name: "汤加热"},
+        {id: 20, name: "称重测试"}
       ],
       buttonsGroup4: [
-        {id: 18, name: "后箱风扇开"},
-        {id: 19, name: "后箱风扇关"},
-        {id: 20, name: "震动器（秒）"}
+        {id: 21, name: "出碗测试"},
+        {id: 22, name: "打开出餐口"},
+        {id: 23, name: "关闭出餐口"}
       ],
-      buttonsGroup5: [
-        {id: 21, name: "一号配菜（g）"},
-        {id: 22, name: "二号配菜（g）"},
-        {id: 23, name: "三号配菜（g）"}
-      ],
-      buttonsGroup6: [
-        {id: 24, name: "调料机（配方）"},
-        {id: 25, name: "弹簧货道（编号）"},
-        {id: 26, name: "称重盒开（编号）"},
-        {id: 27, name: "称重盒关（编号）"}
-      ],
+      buttonsGroup5: [],
+      buttonsGroup6: [],
       dialogVisible: false,
       parameter: '',
       currentButtonId: null,

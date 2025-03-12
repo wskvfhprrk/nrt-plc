@@ -181,7 +181,7 @@ public class MachineServiceImpl implements MachineService {
                 log.error("PLC数据格式错误，长度不足50字节");
                 return Result.error("PLC数据格式错误");
             }
-            String dataBeforeVB50 = String.join(" ", Arrays.copyOfRange(dataArray, 0, 50));
+            String dataBeforeVB50 = String.join(" ", Arrays.copyOfRange(dataArray, 0, 51));
             
             // 将设置值转换为两位16进制字符串
             StringBuilder settingsData = new StringBuilder();
@@ -235,7 +235,7 @@ public class MachineServiceImpl implements MachineService {
                 plcServiceImpl.sendDataToPlc();
             } else {
                 // 如果原始数据长度不超过100，则只需要补充到VB99
-                int bytesToAdd = 50 - currentBytes;
+                int bytesToAdd = 48 - currentBytes;
                 
                 for (int i = 0; i < bytesToAdd; i++) {
                     settingsData.append("00").append(" ");
@@ -956,29 +956,29 @@ public class MachineServiceImpl implements MachineService {
             
             try {
                 // 解析基本设置 (VB150-VB199)
-                settings.setAutoClean(Integer.parseInt(data[50], 16) == 1);                // VB50: 自动清洗开关(1:开启,0:关闭)
-                settings.setNightMode(Integer.parseInt(data[51], 16) == 1);                // VB51: 夜间模式开关(1:开启,0:关闭)
-                settings.setOpenLockTime(Integer.parseInt(data[52], 16));                  // VB52: 开门锁通电时间(0-255秒)
-                settings.setSoupMaxTemperature(Integer.parseInt(data[53], 16));            // VB53: 汤最高温度(0-255℃)
-                settings.setSoupMinTemperature(Integer.parseInt(data[54], 16));            // VB54: 汤最低温度(0-255℃)
-                settings.setSoupQuantity(Integer.parseInt(data[55], 16));                  // VB54: 汤数量(0-255)
-                settings.setFanVentilationTime(Integer.parseInt(data[56], 16));            // VB56: 排油烟风扇通风时间(0-255分钟)
-                settings.setElectricalBoxFanTemp(Integer.parseInt(data[57], 16));          // VB57: 电柜风扇通风温度(0-255℃)
-                settings.setElectricalBoxFanHumidity(Integer.parseInt(data[58], 16));      // VB58: 电柜风扇通风湿度(0-255%)
+                settings.setAutoClean(Integer.parseInt(data[51], 16) == 1);                // VB51: 自动清洗开关(1:开启,0:关闭)
+                settings.setNightMode(Integer.parseInt(data[52], 16) == 1);                // VB52: 夜间模式开关(1:开启,0:关闭)
+                settings.setOpenLockTime(Integer.parseInt(data[53], 16));                  // VB53: 开门锁通电时间(0-255秒)
+                settings.setSoupMaxTemperature(Integer.parseInt(data[54], 16));            // VB54: 汤最高温度(0-255℃)
+                settings.setSoupMinTemperature(Integer.parseInt(data[55], 16));            // VB55: 汤最低温度(0-255℃)
+                settings.setSoupQuantity(Integer.parseInt(data[56], 16));                  // VB56: 汤数量(0-255)
+                settings.setFanVentilationTime(Integer.parseInt(data[57], 16));            // VB57: 排油烟风扇通风时间(0-255分钟)
+                settings.setElectricalBoxFanTemp(Integer.parseInt(data[58], 16));          // VB58: 电柜风扇通风温度(0-255℃)
+                settings.setElectricalBoxFanHumidity(Integer.parseInt(data[59], 16));      // VB59: 电柜风扇通风湿度(0-255%)
 
-                // 解析价格设置 (VB57-VB61)
-                settings.setPrice1(Integer.parseInt(data[59], 16));                        // VB59: 价格1(0-255元)
-                settings.setPrice2(Integer.parseInt(data[60], 16));                        // VB60: 价格2(0-255元)
-                settings.setPrice3(Integer.parseInt(data[61], 16));                        // VB61: 价格3(0-255元)
-                settings.setPrice4(Integer.parseInt(data[62], 16));                        // VB62: 价格4(0-255元)
-                settings.setPrice5(Integer.parseInt(data[63], 16));                        // VB63: 价格5(0-255元)
+                // 解析价格设置 (VB60-VB64)
+                settings.setPrice1(Integer.parseInt(data[60], 16));                        // VB60: 价格1(0-255元)
+                settings.setPrice2(Integer.parseInt(data[61], 16));                        // VB61: 价格2(0-255元)
+                settings.setPrice3(Integer.parseInt(data[62], 16));                        // VB62: 价格3(0-255元)
+                settings.setPrice4(Integer.parseInt(data[63], 16));                        // VB63: 价格4(0-255元)
+                settings.setPrice5(Integer.parseInt(data[64], 16));                        // VB64: 价格5(0-255元)
 
-                // 解析配料重量设置 (VB62-VB71，每个配料2字节)
-                settings.setIngredient1Weight(Integer.parseInt(data[64], 16));            // VB64-65: 配料1重量(0-255g)
-                settings.setIngredient2Weight(Integer.parseInt(data[65], 16));            // VB66-67: 配料2重量(0-255g)
-                settings.setIngredient3Weight(Integer.parseInt(data[66], 16));            // VB68-69: 配料3重量(0-255g)
-                settings.setIngredient4Weight(Integer.parseInt(data[67], 16));            // VB70-71: 配料4重量(0-255g)
-                settings.setIngredient5Weight(Integer.parseInt(data[68], 16));            // VB72-73: 配料5重量(0-255g)
+                // 解析配料重量设置 (VB65-VB74，每个配料2字节)
+                settings.setIngredient1Weight(Integer.parseInt(data[65], 16));            // VB65-66: 配料1重量(0-255g)
+                settings.setIngredient2Weight(Integer.parseInt(data[66], 16));            // VB67-68: 配料2重量(0-255g)
+                settings.setIngredient3Weight(Integer.parseInt(data[67], 16));            // VB69-70: 配料3重量(0-255g)
+                settings.setIngredient4Weight(Integer.parseInt(data[68], 16));            // VB71-72: 配料4重量(0-255g)
+                settings.setIngredient5Weight(Integer.parseInt(data[69], 16));            // VB73-74: 配料5重量(0-255g)
 
                 log.debug("成功解析机器设置数据");
                 return settings;
@@ -988,6 +988,67 @@ public class MachineServiceImpl implements MachineService {
                 return currentSettings;
             }
             
+        } catch (Exception e) {
+            log.error("获取机器设置失败: {}", e.getMessage());
+            return currentSettings;
+        }
+    }
+
+    @Override
+    public MachineSettings reset() {
+        try {
+            // 从PlcServiceImpl读取已发送的数据
+            String plcData = plcServiceImpl.readPlcData();
+            if (plcData == null || plcData.isEmpty()) {
+                log.warn("未能从PLC缓存中读取设置数据，返回当前设置");
+                return currentSettings;
+            }
+
+            // 将数据字符串分割成字节数组
+            String[] data = plcData.split(" ");
+
+            // 验证数据格式
+            if (data.length < 2 || !data[0].equals(PLC_DATA_START) || !data[data.length - 1].equals(PLC_DATA_END)) {
+                log.error("PLC数据格式无效");
+                return currentSettings;
+            }
+
+            MachineSettings settings = new MachineSettings();
+
+            try {
+                // 解析基本设置 (VB150-VB199)
+                settings.setAutoClean(Integer.parseInt(data[51], 16) == 1);                // VB51: 自动清洗开关(1:开启,0:关闭)
+                settings.setNightMode(Integer.parseInt(data[52], 16) == 1);                // VB52: 夜间模式开关(1:开启,0:关闭)
+                settings.setOpenLockTime(Integer.parseInt(data[53], 16));                  // VB53: 开门锁通电时间(0-255秒)
+                settings.setSoupMaxTemperature(Integer.parseInt(data[54], 16));            // VB54: 汤最高温度(0-255℃)
+                settings.setSoupMinTemperature(Integer.parseInt(data[55], 16));            // VB55: 汤最低温度(0-255℃)
+                settings.setSoupQuantity(Integer.parseInt(data[56], 16));                  // VB56: 汤数量(0-255)
+                settings.setFanVentilationTime(Integer.parseInt(data[57], 16));            // VB57: 排油烟风扇通风时间(0-255分钟)
+                settings.setElectricalBoxFanTemp(Integer.parseInt(data[58], 16));          // VB58: 电柜风扇通风温度(0-255℃)
+                settings.setElectricalBoxFanHumidity(Integer.parseInt(data[59], 16));      // VB59: 电柜风扇通风湿度(0-255%)
+
+                // 解析价格设置 (VB60-VB64)
+                settings.setPrice1(Integer.parseInt(data[60], 16));                        // VB60: 价格1(0-255元)
+                settings.setPrice2(Integer.parseInt(data[61], 16));                        // VB61: 价格2(0-255元)
+                settings.setPrice3(Integer.parseInt(data[62], 16));                        // VB62: 价格3(0-255元)
+                settings.setPrice4(Integer.parseInt(data[63], 16));                        // VB63: 价格4(0-255元)
+                settings.setPrice5(Integer.parseInt(data[64], 16));                        // VB64: 价格5(0-255元)
+
+                // 解析配料重量设置 (VB65-VB74，每个配料2字节)
+                settings.setIngredient1Weight(Integer.parseInt(data[65], 16));            // VB65-66: 配料1重量(0-255g)
+                settings.setIngredient2Weight(Integer.parseInt(data[66], 16));            // VB67-68: 配料2重量(0-255g)
+                settings.setIngredient3Weight(Integer.parseInt(data[67], 16));            // VB69-70: 配料3重量(0-255g)
+                settings.setIngredient4Weight(Integer.parseInt(data[68], 16));            // VB71-72: 配料4重量(0-255g)
+                settings.setIngredient5Weight(Integer.parseInt(data[69], 16));            // VB73-74: 配料5重量(0-255g)
+
+                log.debug("成功解析机器设置数据");
+                return settings;
+
+            } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+                log.error("解析PLC数据时出错: {}", e.getMessage());
+                return currentSettings;
+            }
+
         } catch (Exception e) {
             log.error("获取机器设置失败: {}", e.getMessage());
             return currentSettings;

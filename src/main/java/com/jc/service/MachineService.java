@@ -11,4 +11,5 @@ public interface MachineService {
     Result resetAlert(int id);
     Result clearAllAlerts();
     MachineSettings getMachineSettings();
+    MachineSettings reset();
 }

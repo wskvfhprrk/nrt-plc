@@ -48,9 +48,10 @@ public class PlcServiceImpl implements DeviceHandler {
             return;
         }
 
-        log.info("收到有效的PLC数据：{}", message);
+//        log.info("收到有效的PLC数据：{}", message);
         storePlcData(cleanMessage);
-        syncVB50ToVB150(cleanMessage);
+        // todo 进行同步配置参数
+//        syncVB50ToVB150(cleanMessage);
     }
 
     /**
@@ -189,12 +190,12 @@ public class PlcServiceImpl implements DeviceHandler {
             return Result.error("没有找到要发送的PLC数据");
         }
         
-        // 去掉数据中的空格
-        String cleanedData = dataToSend.replaceAll(" ", "");
+//        // 去掉数据中的空格
+//        String cleanedData = dataToSend.replaceAll(" ", "");
         
         // 使用Netty发送数据
-        nettyServerHandler.sendMessageToClient(ipConfig.getPlc(), cleanedData, true);
-        log.info("数据已成功发送到PLC: {}", cleanedData);
+        nettyServerHandler.sendMessageToClient(ipConfig.getPlc(), dataToSend, true);
+        log.info("数据已成功发送到PLC: {}", dataToSend);
         return Result.success();
     }
 
@@ -206,6 +207,15 @@ public class PlcServiceImpl implements DeviceHandler {
         String sentData = redisTemplate.opsForValue().get(PLC_SEND_DATA_KEY);
         if (isEmpty(sentData)) {
             log.warn("没有找到已发送的PLC数据");
+            return null;
+        }
+        return sentData;
+    }
+
+    public String readPlcData() {
+        String sentData = redisTemplate.opsForValue().get(PLC_DATA_KEY);
+        if (isEmpty(sentData)) {
+            log.warn("没有找到PLC数据");
             return null;
         }
         return sentData;

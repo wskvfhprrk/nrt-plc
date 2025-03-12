@@ -58,7 +58,15 @@ public class MachineController {
     // 添加重置接口
     @PostMapping("/reset")
     public Result reset() {
-            return getSettings();
+        try {
+            MachineSettings settings = machineService.reset();
+            if (settings == null) {
+                return Result.error("获取设置失败：未找到设置信息");
+            }
+            return Result.success(settings);
+        } catch (Exception e) {
+            return Result.error("获取设置失败: " + e.getMessage());
+        }
     }
 
     @DeleteMapping("/alerts/clear")

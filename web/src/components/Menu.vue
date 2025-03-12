@@ -23,6 +23,9 @@
         <el-menu-item index="3" @click="goTo('/machineSettings')">
           机器设置
         </el-menu-item>
+        <el-menu-item index="6" @click="goTo('/buttons')">
+          手动操作
+        </el-menu-item>
         <el-menu-item index="4" @click="goTo('salesStatistics')">
           销售统计
         </el-menu-item>
@@ -70,7 +73,7 @@ export default {
         case '/setAccount':
           return '5';
         case '/buttons':
-          return '9';
+          return '6';
         default:
           return '1';
       }

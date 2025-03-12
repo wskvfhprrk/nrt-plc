@@ -133,7 +133,7 @@ export default {
       },
       recipes: [
         {key: 'beefSoup', label: '牛肉汤'},
-        {key: 'beefOffalSoup', label: '牛杂汤'}
+        {key: 'beefOffalSoup', label: '牛肉面'}
       ],
       prices: [
           {key: 'small', label: '小份'},

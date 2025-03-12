@@ -16,24 +16,24 @@
 
       <!-- 开门锁通电时间 -->
       <el-form-item label="开门锁通电时间">
-        <el-input-number v-model="form.openLockTime" :min="0" :max="255" />
+        <el-input-number v-model="form.openLockTime" :min="0" :max="5" />
         <span>毫秒</span>
-        <span style="color: red;">（一般为50，不要随意更改，否则烧坏锁。取值范围：0-255）</span>
+        <span style="color: red;">（一般为3~5，不要随意更改，否则烧坏锁）</span>
       </el-form-item>
 
       <!-- 汤温度设置 -->
       <el-form-item label="汤最高温度">
-        <el-input-number v-model="form.soupMaxTemperature" :min="0" :max="255" />
+        <el-input-number v-model="form.soupMaxTemperature" :min="0" :max="100" />
         <span>℃（出汤温度，取值范围：0-255）</span>
       </el-form-item>
       <el-form-item label="汤最低温度">
-        <el-input-number v-model="form.soupMinTemperature" :min="0" :max="255" />
+        <el-input-number v-model="form.soupMinTemperature" :min="0" :max="90" />
         <span>℃（保温温度，取值范围：0-255）</span>
       </el-form-item>
 
       <!-- 汤数量 -->
       <el-form-item label="汤数量">
-        <el-input-number v-model="form.soupQuantity" :min="0" :max="255" />
+        <el-input-number v-model="form.soupQuantity" :min="0" :max="30" />
         <span>脉冲（出汤量多少值，取值范围：0-255）</span>
       </el-form-item>
 
@@ -45,13 +45,13 @@
 
       <!-- 电柜风扇通风的温度值 -->
       <el-form-item label="电柜风扇通风的温度值">
-        <el-input-number v-model="form.electricalBoxFanTemp" :min="0" :max="255" />
+        <el-input-number v-model="form.electricalBoxFanTemp" :min="0" :max="50" />
         <span>℃（电箱到达温度会启动风扇，取值范围：0-255）</span>
       </el-form-item>
 
       <!-- 电柜风扇通风的湿度值 -->
       <el-form-item label="电柜风扇通风的湿度值">
-        <el-input-number v-model="form.electricalBoxFanHumidity" :min="0" :max="255" />
+        <el-input-number v-model="form.electricalBoxFanHumidity" :min="0" :max="100" />
         <span>%（电箱到达湿度会启动风扇，取值范围：0-255）</span>
       </el-form-item>
 
@@ -104,7 +104,7 @@
       <!-- 按钮组 -->
       <el-form-item>
         <el-button type="primary" @click="saveSettings">保存设置</el-button>
-        <el-button @click="resetSettings">重置</el-button>
+        <el-button @click="resetSettings">从plc读取配置</el-button>
       </el-form-item>
     </el-form>
   </div>
