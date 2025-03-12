@@ -34,5 +34,10 @@ public class MachineSettings {
     private Integer ingredient3Weight;  // 配料3重量
     private Integer ingredient4Weight;  // 配料4重量
     private Integer ingredient5Weight;  // 配料5重量
+    
+    // 机器人设置
+    private Integer beefSoupTime;      // 汤牛肉时间设置(秒)
+    private Boolean robotAutoMode;     // 机器人模式(true:自动,false:手动)
+    private Boolean robotEmergencyStop; // 机器人急停开关(true:开启,false:关闭)
 
 }

@@ -2,6 +2,17 @@
   <div class="machine-settings-container">
       
     <el-form :model="form" label-width="180px" class="settings-form">
+
+      <!-- 机器人设置 -->
+      <h4>机器人设置</h4>
+      
+      <el-form-item label="机器人模式">
+        <el-switch v-model="form.robotAutoMode" active-text="自动" inactive-text="手动"></el-switch>
+      </el-form-item>
+      <el-form-item label="机器人急停开关">
+        <el-switch v-model="form.robotEmergencyStop" active-text="开启" inactive-text="关闭"></el-switch>
+      </el-form-item>
+
       <h4>机器设置</h4>  
       
       <!-- 自动清洗 -->
@@ -30,7 +41,10 @@
         <el-input-number v-model="form.soupMinTemperature" :min="0" :max="90" />
         <span>℃（保温温度，取值范围：0-255）</span>
       </el-form-item>
-
+      <el-form-item label="汤牛肉时间设置">
+        <el-input-number v-model="form.beefSoupTime" :min="0" :max="255" />
+        <span>秒（取值范围：0-255）</span>
+      </el-form-item>
       <!-- 汤数量 -->
       <el-form-item label="汤数量">
         <el-input-number v-model="form.soupQuantity" :min="0" :max="30" />
@@ -101,6 +115,8 @@
         <span>g（0为不用称重，取值范围：0-255）</span>
       </el-form-item>
 
+      
+
       <!-- 按钮组 -->
       <el-form-item>
         <el-button type="primary" @click="saveSettings">保存设置</el-button>
@@ -137,6 +153,9 @@ export default {
         ingredient3Weight: 200,
         ingredient4Weight: 250,
         ingredient5Weight: 300,
+        beefSoupTime: 10, // 汤牛肉时间设置默认值
+        robotAutoMode: false, // 机器人模式默认为手动
+        robotEmergencyStop: false, // 机器人急停开关默认关闭
       }
     }
   },
@@ -169,7 +188,10 @@ export default {
               ingredient2Weight: backendData.ingredient2Weight,
               ingredient3Weight: backendData.ingredient3Weight,
               ingredient4Weight: backendData.ingredient4Weight,
-              ingredient5Weight: backendData.ingredient5Weight
+              ingredient5Weight: backendData.ingredient5Weight,
+              beefSoupTime: backendData.beefSoupTime || 60,
+              robotAutoMode: backendData.robotAutoMode || false,
+              robotEmergencyStop: backendData.robotEmergencyStop || false,
             };
           } else {
             this.$message.error(response.data.message);

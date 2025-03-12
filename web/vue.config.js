@@ -4,9 +4,9 @@ const baseUrl = 'http://127.0.0.1:8080'; // 提取 baseUrl
 module.exports = defineConfig({
     devServer: {
         port: 8081,
-        host: '192.168.3.139', // 添加主机地址
+        host: '0.0.0.0', // 修改主机地址
         client: {
-            webSocketURL: 'ws://192.168.3.139:8081/ws', // 显式设置WebSocket URL
+            webSocketURL: 'ws://0.0.0.0:8081/ws', // 修改WebSocket URL
         },
        
         proxy: {

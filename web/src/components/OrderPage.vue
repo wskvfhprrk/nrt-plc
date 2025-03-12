@@ -256,7 +256,7 @@ export default {
     connectWebSocket() {
       // 直接连接到后端WebSocket服务器
       // 使用实际的后端服务器地址，而不是前端服务器地址
-      const backendUrl = 'ws://192.168.3.139:8080/ws'; // 修改为后端实际地址和端口
+      const backendUrl = 'ws://0.0.0.0:8080/ws'; // 修改为后端实际地址和端口
       
       try {
         this.ws = new WebSocket(backendUrl);
