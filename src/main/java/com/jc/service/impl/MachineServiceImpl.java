@@ -221,9 +221,9 @@ public class MachineServiceImpl implements MachineService {
             settingsData.append(String.format("%02X", settings.getIngredient5Weight())).append(" ");   // VB69: 配料5重量(0-255g)
             
             // 添加机器人设置
-            settingsData.append(String.format("%02X", settings.getBeefSoupTime())).append(" ");        // VB74: 汤牛肉时间设置(0-255秒)
-            settingsData.append(String.format("%02X", settings.getRobotAutoMode() ? 1 : 0)).append(" "); // VB75: 机器人模式(1:自动,0:手动)
-            settingsData.append(String.format("%02X", settings.getRobotEmergencyStop() ? 1 : 0)).append(" "); // VB76: 机器人急停开关(1:开启,0:关闭)
+            settingsData.append(String.format("%02X", settings.getBeefSoupTime())).append(" ");        // VB70: 汤牛肉时间设置(0-255秒)
+            settingsData.append(String.format("%02X", settings.getRobotAutoMode() ? 1 : 0)).append(" "); // VB71: 机器人模式(1:自动,0:手动)
+            settingsData.append(String.format("%02X", settings.getRobotEmergencyStop() ? 1 : 0)).append(" "); // VB72: 机器人急停开关(1:开启,0:关闭)
             
             // 计算已添加的字节数
             int currentBytes = settingsData.toString().split(" ").length;
@@ -1003,20 +1003,20 @@ public class MachineServiceImpl implements MachineService {
                 settings.setIngredient5Weight(Integer.parseInt(data[69], 16));            // VB69: 配料5重量(0-255g)
                 
                 // 解析机器人设置
-                if (data.length > 74) {
-                    settings.setBeefSoupTime(Integer.parseInt(data[74], 16));             // VB74: 汤牛肉时间设置(0-255秒)
+                if (data.length > 70) {
+                    settings.setBeefSoupTime(Integer.parseInt(data[70], 16));             // VB70: 汤牛肉时间设置(0-255秒)
                 } else {
                     settings.setBeefSoupTime(60); // 默认值
                 }
                 
-                if (data.length > 75) {
-                    settings.setRobotAutoMode(Integer.parseInt(data[75], 16) == 1);       // VB75: 机器人模式(1:自动,0:手动)
+                if (data.length > 71) {
+                    settings.setRobotAutoMode(Integer.parseInt(data[71], 16) == 1);       // VB71: 机器人模式(1:自动,0:手动)
                 } else {
                     settings.setRobotAutoMode(false); // 默认值
                 }
                 
-                if (data.length > 76) {
-                    settings.setRobotEmergencyStop(Integer.parseInt(data[76], 16) == 1);  // VB76: 机器人急停开关(1:开启,0:关闭)
+                if (data.length > 72) {
+                    settings.setRobotEmergencyStop(Integer.parseInt(data[72], 16) == 1);  // VB72: 机器人急停开关(1:开启,0:关闭)
                 } else {
                     settings.setRobotEmergencyStop(false); // 默认值
                 }
@@ -1083,20 +1083,20 @@ public class MachineServiceImpl implements MachineService {
                 settings.setIngredient5Weight(Integer.parseInt(data[69], 16));            // VB69: 配料5重量(0-255g)
 
                 // 解析机器人设置
-                if (data.length > 74) {
-                    settings.setBeefSoupTime(Integer.parseInt(data[74], 16));             // VB74: 汤牛肉时间设置(0-255秒)
+                if (data.length > 70) {
+                    settings.setBeefSoupTime(Integer.parseInt(data[70], 16));             // VB70: 汤牛肉时间设置(0-255秒)
                 } else {
                     settings.setBeefSoupTime(60); // 默认值
                 }
                 
-                if (data.length > 75) {
-                    settings.setRobotAutoMode(Integer.parseInt(data[75], 16) == 1);       // VB75: 机器人模式(1:自动,0:手动)
+                if (data.length > 71) {
+                    settings.setRobotAutoMode(Integer.parseInt(data[71], 16) == 1);       // VB71: 机器人模式(1:自动,0:手动)
                 } else {
                     settings.setRobotAutoMode(false); // 默认值
                 }
                 
-                if (data.length > 76) {
-                    settings.setRobotEmergencyStop(Integer.parseInt(data[76], 16) == 1);  // VB76: 机器人急停开关(1:开启,0:关闭)
+                if (data.length > 72) {
+                    settings.setRobotEmergencyStop(Integer.parseInt(data[72], 16) == 1);  // VB72: 机器人急停开关(1:开启,0:关闭)
                 } else {
                     settings.setRobotEmergencyStop(false); // 默认值
                 }
