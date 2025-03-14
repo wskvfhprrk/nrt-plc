@@ -10,6 +10,7 @@ public class PortionOptionsConfig {
     private PortionOption mid;
     private PortionOption large;
     private PortionOption addMeat; // 修改字段名称
+    private PortionOption extra;
 
     // Getters and setters
     public PortionOption getSmall() {
@@ -44,6 +45,14 @@ public class PortionOptionsConfig {
         this.addMeat = addMeat;
     }
 
+    public PortionOption getExtra() {
+        return extra;
+    }
+
+    public void setExtra(PortionOption extra) {
+        this.extra = extra;
+    }
+
     // Method to find price by type
     public int findPriceByType(String type) {
         switch (type.toLowerCase()) {
@@ -72,6 +81,28 @@ public class PortionOptionsConfig {
             return addMeat.getQuantity();
         } else {
             throw new IllegalArgumentException("No portion option found with price: " + price);
+        }
+    }
+
+    /**
+     * 根据实际价格查找价格等级（1-5）
+     * 
+     * @param actualPrice 实际价格
+     * @return 价格等级（1-5）
+     */
+    public Integer findPriceLevelByPrice(int actualPrice) {
+        if (small != null && small.getPrice() == actualPrice) {
+            return 1; // 小份对应价格等级1
+        } else if (mid != null && mid.getPrice() == actualPrice) {
+            return 2; // 中份对应价格等级2
+        } else if (large != null && large.getPrice() == actualPrice) {
+            return 3; // 大份对应价格等级3
+        } else if (addMeat != null && addMeat.getPrice() == actualPrice) {
+            return 4; // 加肉对应价格等级4
+        } else if (extra != null && extra.getPrice() == actualPrice) {
+            return 5; // 额外对应价格等级5
+        } else {
+            throw new IllegalArgumentException("No portion option found with price: " + actualPrice);
         }
     }
 

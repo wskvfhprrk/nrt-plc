@@ -139,6 +139,11 @@ public class MqttConsumerCallBack implements MqttCallback {
             //如果支付完成就删除缓存中订单，同时增加已经支付订单——通知机器制作
             //删除二维码缓存
             redisTemplate.delete(Constants.PAY_DATA + "::" + order.getOrderId());
+            
+            // 将实际金额转换为价格编号（1-5）
+            // 这里需要根据实际金额找到对应的价格编号
+            // 然后将价格编号设置到order对象中
+            
             queueService.enqueue(order);
             //通知前台支付成功关闭二维码
             webSocketHandler.broadcastMessage("paySuccess");

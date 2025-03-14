@@ -49,10 +49,16 @@ public class OrderController {
      */
     @PostMapping
     public ResponseEntity<String> submitOrder(@RequestBody OrderVo orderVo) throws Exception {
-        Order order=new Order();
-        BeanUtils.copyProperties(orderVo,order);
+        Order order = new Order();
+        BeanUtils.copyProperties(orderVo, order);
 
-        order.setSelectedPrice(portionOptionsConfig.findPriceByType(orderVo.getSelectedPrice()));
+        // 将价格字符串转换为整数
+        try {
+            order.setSelectedPrice(Integer.parseInt(orderVo.getSelectedPrice()));
+        } catch (NumberFormatException e) {
+            // 如果转换失败，尝试使用portionOptionsConfig查找价格
+            order.setSelectedPrice(portionOptionsConfig.findPriceByType(orderVo.getSelectedPrice()));
+        }
 
         order.setStatus(OrderStatus.PENDING);
         //发送mqtt消息
@@ -67,8 +73,20 @@ public class OrderController {
         try {
             // 读取Redis队列中的内容
             List<String> pendingOrders = redisTemplate.opsForList().range(Constants.PENDING_ORDER_REDIS_PRIMARY_KEY, 0, -1);
-            List<String> inProgressOrders = redisTemplate.opsForList().range(Constants.ORDER_REDIS_PRIMARY_KEY_IN_PROGRESS, 0, -1);
+            if (pendingOrders == null) {
+                pendingOrders = new ArrayList<>();
+            }
+
+            String inProgressOrderStr = (String) redisTemplate.opsForValue().get(Constants.ORDER_REDIS_PRIMARY_KEY_IN_PROGRESS);
+            List<String> inProgressOrders = new ArrayList<>();
+            if (inProgressOrderStr != null) {
+                inProgressOrders.add(inProgressOrderStr);
+            }
+
             List<String> completedOrders = redisTemplate.opsForList().range(Constants.COMPLETED_ORDER_REDIS_PRIMARY_KEY, 0, -1);
+            if (completedOrders == null) {
+                completedOrders = new ArrayList<>();
+            }
 
             List<Order> pendingOrdersList = pendingOrders.stream().map(s -> {
                 return JSON.parseObject(s, Order.class);

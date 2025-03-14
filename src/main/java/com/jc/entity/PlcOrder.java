@@ -1,13 +1,25 @@
 package com.jc.entity;
 
+import com.jc.config.OrderPriceConfig;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import java.io.Serializable;
 
 /**
  * PlcOrder 实体类，专门用于向PLC发送订单数据
  */
 @Data
+@Component
 public class PlcOrder implements Serializable {
+
+    private static OrderPriceConfig orderPriceConfig;
+
+    @Autowired
+    public void setOrderPriceConfig(OrderPriceConfig orderPriceConfig) {
+        PlcOrder.orderPriceConfig = orderPriceConfig;
+    }
 
     /**
      * 订单ID
@@ -61,10 +73,11 @@ public class PlcOrder implements Serializable {
         
         // 设置价格等级
         if (order.getSelectedPrice() != null) {
-            int priceLevel = order.getSelectedPrice();
-            if (priceLevel < 1 || priceLevel > 5) {
-                priceLevel = 1; // 默认为1
-            }
+            // 使用配置类根据实际价格值映射到价格等级
+            int priceLevel = orderPriceConfig != null 
+                ? orderPriceConfig.getPriceLevelByValue(order.getSelectedPrice())
+                : 1; // 如果配置类未初始化，则使用默认值
+            
             plcOrder.setPriceLevel(priceLevel);
         } else {
             plcOrder.setPriceLevel(1); // 默认为1

@@ -19,20 +19,18 @@ public class OrderQueueListener {
     private RedisQueueService redisQueueService; // 业务逻辑服务
     @Autowired
     private TaskCoordinator taskCoordinator;
-    @Autowired
-    private PlcServiceImpl plcService;
 
 
     // 每秒钟检查一次队列中的订单
     @Scheduled(cron = "0/1 * * * * ?") // 1秒
     public void checkAndProcessOrders() {
-        plcService.sendOrderStatus = false;
-        if (redisQueueService.getQueueSize() > 0) {
-            try {
-                taskCoordinator.executeOrder();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+//        plcService.sendOrderStatus = false;
+//        if (redisQueueService.getQueueSize() > 0) {
+        try {
+            taskCoordinator.executeOrder();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+//        }
     }
 }

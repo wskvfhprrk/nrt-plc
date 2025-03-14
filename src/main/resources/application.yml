@@ -37,3 +37,12 @@ ip:
   nettyPort: 5555 # Netty 端口
   plc: 192.168.1.3 # 信号采集设备网关
 
+# 订单价格配置
+order:
+  prices:
+    type1: 10
+    type2: 15
+    type3: 20
+    type4: 30
+    type5: 40
+

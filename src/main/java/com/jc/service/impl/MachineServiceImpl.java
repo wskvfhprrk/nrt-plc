@@ -213,17 +213,17 @@ public class MachineServiceImpl implements MachineService {
                       .append(String.format("%02X", settings.getPrice4())).append(" ")                  // VB62: 价格4(0-255元)
                       .append(String.format("%02X", settings.getPrice5())).append(" ");                 // VB63: 价格5(0-255元)
             
-            // 添加配料重量设置 (VB65-VB69，每个配料1字节)
-            settingsData.append(String.format("%02X", settings.getIngredient1Weight())).append(" ");   // VB65: 配料1重量(0-255g)
-            settingsData.append(String.format("%02X", settings.getIngredient2Weight())).append(" ");   // VB66: 配料2重量(0-255g)
-            settingsData.append(String.format("%02X", settings.getIngredient3Weight())).append(" ");   // VB67: 配料3重量(0-255g)
-            settingsData.append(String.format("%02X", settings.getIngredient4Weight())).append(" ");   // VB68: 配料4重量(0-255g)
-            settingsData.append(String.format("%02X", settings.getIngredient5Weight())).append(" ");   // VB69: 配料5重量(0-255g)
+            // 添加配料重量设置（每个配料用1字节表示）
+            settingsData.append(String.format("%02X", settings.getIngredient1Weight())).append(" ");   // VB64: 配料1重量(0-255g)
+            settingsData.append(String.format("%02X", settings.getIngredient2Weight())).append(" ");   // VB65: 配料2重量(0-255g)
+            settingsData.append(String.format("%02X", settings.getIngredient3Weight())).append(" ");   // VB66: 配料3重量(0-255g)
+            settingsData.append(String.format("%02X", settings.getIngredient4Weight())).append(" ");   // VB67: 配料4重量(0-255g)
+            settingsData.append(String.format("%02X", settings.getIngredient5Weight())).append(" ");   // VB68: 配料5重量(0-255g)
             
             // 添加机器人设置
-            settingsData.append(String.format("%02X", settings.getBeefSoupTime())).append(" ");        // VB70: 汤牛肉时间设置(0-255秒)
-            settingsData.append(String.format("%02X", settings.getRobotAutoMode() ? 1 : 0)).append(" "); // VB71: 机器人模式(1:自动,0:手动)
-            settingsData.append(String.format("%02X", settings.getRobotEmergencyStop() ? 1 : 0)).append(" "); // VB72: 机器人急停开关(1:开启,0:关闭)
+            settingsData.append(String.format("%02X", settings.getBeefSoupTime())).append(" ");        // VB74: 汤牛肉时间设置(0-255秒)
+            settingsData.append(String.format("%02X", settings.getRobotAutoMode() ? 1 : 0)).append(" "); // VB75: 机器人模式(1:自动,0:手动)
+            settingsData.append(String.format("%02X", settings.getRobotEmergencyStop() ? 1 : 0)).append(" "); // VB76: 机器人急停开关(1:开启,0:关闭)
             
             // 计算已添加的字节数
             int currentBytes = settingsData.toString().split(" ").length;
@@ -995,28 +995,28 @@ public class MachineServiceImpl implements MachineService {
                 settings.setPrice4(Integer.parseInt(data[63], 16));                        // VB63: 价格4(0-255元)
                 settings.setPrice5(Integer.parseInt(data[64], 16));                        // VB64: 价格5(0-255元)
 
-                // 解析配料重量设置 (VB65-VB69，每个配料1字节)
-                settings.setIngredient1Weight(Integer.parseInt(data[65], 16));            // VB65: 配料1重量(0-255g)
-                settings.setIngredient2Weight(Integer.parseInt(data[66], 16));            // VB66: 配料2重量(0-255g)
-                settings.setIngredient3Weight(Integer.parseInt(data[67], 16));            // VB67: 配料3重量(0-255g)
-                settings.setIngredient4Weight(Integer.parseInt(data[68], 16));            // VB68: 配料4重量(0-255g)
-                settings.setIngredient5Weight(Integer.parseInt(data[69], 16));            // VB69: 配料5重量(0-255g)
+                // 解析配料重量设置 (VB65-VB74，每个配料2字节)
+                settings.setIngredient1Weight(Integer.parseInt(data[65], 16));            // VB65-66: 配料1重量(0-255g)
+                settings.setIngredient2Weight(Integer.parseInt(data[66], 16));            // VB67-68: 配料2重量(0-255g)
+                settings.setIngredient3Weight(Integer.parseInt(data[67], 16));            // VB69-70: 配料3重量(0-255g)
+                settings.setIngredient4Weight(Integer.parseInt(data[68], 16));            // VB71-72: 配料4重量(0-255g)
+                settings.setIngredient5Weight(Integer.parseInt(data[69], 16));            // VB73-74: 配料5重量(0-255g)
                 
                 // 解析机器人设置
-                if (data.length > 70) {
-                    settings.setBeefSoupTime(Integer.parseInt(data[70], 16));             // VB70: 汤牛肉时间设置(0-255秒)
+                if (data.length > 74) {
+                    settings.setBeefSoupTime(Integer.parseInt(data[74], 16));             // VB74: 汤牛肉时间设置(0-255秒)
                 } else {
                     settings.setBeefSoupTime(60); // 默认值
                 }
                 
-                if (data.length > 71) {
-                    settings.setRobotAutoMode(Integer.parseInt(data[71], 16) == 1);       // VB71: 机器人模式(1:自动,0:手动)
+                if (data.length > 75) {
+                    settings.setRobotAutoMode(Integer.parseInt(data[75], 16) == 1);       // VB75: 机器人模式(1:自动,0:手动)
                 } else {
                     settings.setRobotAutoMode(false); // 默认值
                 }
                 
-                if (data.length > 72) {
-                    settings.setRobotEmergencyStop(Integer.parseInt(data[72], 16) == 1);  // VB72: 机器人急停开关(1:开启,0:关闭)
+                if (data.length > 76) {
+                    settings.setRobotEmergencyStop(Integer.parseInt(data[76], 16) == 1);  // VB76: 机器人急停开关(1:开启,0:关闭)
                 } else {
                     settings.setRobotEmergencyStop(false); // 默认值
                 }
@@ -1075,28 +1075,28 @@ public class MachineServiceImpl implements MachineService {
                 settings.setPrice4(Integer.parseInt(data[63], 16));                        // VB63: 价格4(0-255元)
                 settings.setPrice5(Integer.parseInt(data[64], 16));                        // VB64: 价格5(0-255元)
 
-                // 解析配料重量设置 (VB65-VB69，每个配料1字节)
-                settings.setIngredient1Weight(Integer.parseInt(data[65], 16));            // VB65: 配料1重量(0-255g)
-                settings.setIngredient2Weight(Integer.parseInt(data[66], 16));            // VB66: 配料2重量(0-255g)
-                settings.setIngredient3Weight(Integer.parseInt(data[67], 16));            // VB67: 配料3重量(0-255g)
-                settings.setIngredient4Weight(Integer.parseInt(data[68], 16));            // VB68: 配料4重量(0-255g)
-                settings.setIngredient5Weight(Integer.parseInt(data[69], 16));            // VB69: 配料5重量(0-255g)
+                // 解析配料重量设置 (VB65-VB74，每个配料2字节)
+                settings.setIngredient1Weight(Integer.parseInt(data[65], 16));            // VB65-66: 配料1重量(0-255g)
+                settings.setIngredient2Weight(Integer.parseInt(data[66], 16));            // VB67-68: 配料2重量(0-255g)
+                settings.setIngredient3Weight(Integer.parseInt(data[67], 16));            // VB69-70: 配料3重量(0-255g)
+                settings.setIngredient4Weight(Integer.parseInt(data[68], 16));            // VB71-72: 配料4重量(0-255g)
+                settings.setIngredient5Weight(Integer.parseInt(data[69], 16));            // VB73-74: 配料5重量(0-255g)
 
                 // 解析机器人设置
-                if (data.length > 70) {
-                    settings.setBeefSoupTime(Integer.parseInt(data[70], 16));             // VB70: 汤牛肉时间设置(0-255秒)
+                if (data.length > 74) {
+                    settings.setBeefSoupTime(Integer.parseInt(data[74], 16));             // VB74: 汤牛肉时间设置(0-255秒)
                 } else {
                     settings.setBeefSoupTime(60); // 默认值
                 }
                 
-                if (data.length > 71) {
-                    settings.setRobotAutoMode(Integer.parseInt(data[71], 16) == 1);       // VB71: 机器人模式(1:自动,0:手动)
+                if (data.length > 75) {
+                    settings.setRobotAutoMode(Integer.parseInt(data[75], 16) == 1);       // VB75: 机器人模式(1:自动,0:手动)
                 } else {
                     settings.setRobotAutoMode(false); // 默认值
                 }
                 
-                if (data.length > 72) {
-                    settings.setRobotEmergencyStop(Integer.parseInt(data[72], 16) == 1);  // VB72: 机器人急停开关(1:开启,0:关闭)
+                if (data.length > 76) {
+                    settings.setRobotEmergencyStop(Integer.parseInt(data[76], 16) == 1);  // VB76: 机器人急停开关(1:开启,0:关闭)
                 } else {
                     settings.setRobotEmergencyStop(false); // 默认值
                 }
@@ -1191,9 +1191,9 @@ public class MachineServiceImpl implements MachineService {
             log.info("规范化后的PLC数据，共{}字节", dataArray.length);
             
             // 获取PLC订单数据
-            int priceLevel = plcOrder.getPriceLevel() != null ? plcOrder.getPriceLevel() : 1;
-            int recipeCode = plcOrder.getRecipeCode() != null ? plcOrder.getRecipeCode() : 0;
-            int foodType = plcOrder.getFoodType() != null ? plcOrder.getFoodType() : 1;
+            Integer priceLevel = plcOrder.getPriceLevel(); // 直接使用priceLevel，不需要转换
+            Integer recipeCode = plcOrder.getRecipeCode() != null ? plcOrder.getRecipeCode() : 0;
+            Integer foodType = plcOrder.getFoodType() != null ? plcOrder.getFoodType() : 1;
             boolean isNewOrder = plcOrder.getIsNewOrder() != null ? plcOrder.getIsNewOrder() : true;
             
             // 修改前4个字节的数据（VB0-VB3）
@@ -1211,7 +1211,6 @@ public class MachineServiceImpl implements MachineService {
             dataArray[3] = String.format("%02X", foodType);
             dataArray[4] = isNewOrder ? "01" : "00";
             
-            // 重新组合数据
             String updatedPlcData = String.join(" ", dataArray);
             
             // 存入Redis并发送到PLC
@@ -1327,5 +1326,25 @@ public class MachineServiceImpl implements MachineService {
             log.error("发送复位报警指令到PLC失败: {}", e.getMessage());
             return Result.error("发送复位报警指令失败: " + e.getMessage());
         }
+    }
+
+    /**
+     * 将实际金额转换为PLC价格编号（1-5）
+     * 
+     * @param actualPrice 实际金额
+     * @return 价格编号（1-5）
+     */
+    private Integer convertPriceToLevel(Integer actualPrice) {
+        // 根据前端页面顺序，将实际金额映射到价格编号
+        // 这里需要根据实际价格配置进行映射
+        // 示例实现：
+        Map<Integer, Integer> priceToLevelMap = new HashMap<>();
+        priceToLevelMap.put(10, 1); // 假设10元对应第一个价格选项
+        priceToLevelMap.put(15, 2); // 假设15元对应第二个价格选项
+        priceToLevelMap.put(20, 3); // 假设20元对应第三个价格选项
+        priceToLevelMap.put(30, 4); // 假设30元对应第四个价格选项
+        priceToLevelMap.put(40, 5); // 假设40元对应第五个价格选项（备用）
+        
+        return priceToLevelMap.getOrDefault(actualPrice, 1); // 默认返回1
     }
 }
