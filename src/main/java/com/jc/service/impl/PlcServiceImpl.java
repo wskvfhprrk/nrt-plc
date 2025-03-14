@@ -189,10 +189,7 @@ public class PlcServiceImpl implements DeviceHandler {
             log.warn("没有找到要发送的PLC数据");
             return Result.error("没有找到要发送的PLC数据");
         }
-        
-//        // 去掉数据中的空格
-//        String cleanedData = dataToSend.replaceAll(" ", "");
-        
+
         // 使用Netty发送数据
         nettyServerHandler.sendMessageToClient(ipConfig.getPlc(), dataToSend, true);
         log.info("数据已成功发送到PLC: {}", dataToSend);

@@ -47,8 +47,8 @@
       </el-form-item>
       <!-- 汤数量 -->
       <el-form-item label="汤数量">
-        <el-input-number v-model="form.soupQuantity" :min="0" :max="30" />
-        <span>脉冲（出汤量多少值，取值范围：0-255）</span>
+        <el-input-number v-model="form.soupQuantity" :min="0" :max="100" />
+        <span>（出汤量多少值，30为500ml）</span>
       </el-form-item>
 
       <!-- 排油烟风扇通风的时间 -->

@@ -38,7 +38,7 @@ public class PlcOrder implements Serializable {
      * 默认构造函数
      */
     public PlcOrder() {
-        this.isNewOrder = true;
+        this.isNewOrder = false;
     }
     
     /**
@@ -49,7 +49,7 @@ public class PlcOrder implements Serializable {
         this.priceLevel = priceLevel;
         this.recipeCode = recipeCode;
         this.foodType = foodType;
-        this.isNewOrder = true;
+        this.isNewOrder = false;
     }
     
     /**
@@ -93,7 +93,7 @@ public class PlcOrder implements Serializable {
             plcOrder.setRecipeCode(0); // 默认无特殊配方
         }
         
-        plcOrder.setIsNewOrder(true);
+        plcOrder.setIsNewOrder(false);
         
         return plcOrder;
     }

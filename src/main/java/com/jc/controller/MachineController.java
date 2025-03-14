@@ -23,25 +23,17 @@ public class MachineController {
 
     @PostMapping("/save")
     public Result saveSettings(@RequestBody MachineSettings settings) {
-        try {
-            machineService.saveSettings(settings); // 使用服务保存设置
-            return Result.success("设置成功");
-        } catch (Exception e) {
-            return Result.error("保存设置失败: " + e.getMessage());
-        }
+        machineService.saveSettings(settings); // 使用服务保存设置
+        return Result.success("设置成功");
     }
 
     @GetMapping("/get")
     public Result<MachineSettings> getSettings() {
-        try {
             MachineSettings settings = machineService.getMachineSettings();
             if (settings == null) {
                 return Result.error("获取设置失败：未找到设置信息");
             }
             return Result.success(settings);
-        } catch (Exception e) {
-            return Result.error("获取设置失败: " + e.getMessage());
-        }
     }
 
     // 新增方法以处理前端请求
@@ -56,7 +48,7 @@ public class MachineController {
     public Result resetAlert(@RequestParam int alertId) {
         return machineService.resetAlert(alertId);
     }
-    
+
     // 添加通过PLC复位报警的端点
     @PostMapping("/alerts/reset-via-plc")
     public Result resetAlarmViaPlc() {
@@ -68,7 +60,7 @@ public class MachineController {
 //    public Result processOrder(@RequestBody Order order) {
 //        return machineService.addNewOrder(order);
 //    }
-    
+
     // 添加处理PLC订单的端点
     @PostMapping("/plc-order")
     public Result processPlcOrder(@RequestBody PlcOrder plcOrder) {

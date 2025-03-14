@@ -139,7 +139,7 @@ public class MachineServiceImpl implements MachineService {
     public Result saveSettings(MachineSettings settings) {
         try {
             // 验证设置参数的合法性
-            validateSettings(settings);
+//            validateSettings(settings);
             
             // 从redis中读取当前PLC数据
             String currentPlcData = plcServiceImpl.readSentData();
@@ -188,6 +188,8 @@ public class MachineServiceImpl implements MachineService {
                 log.error("PLC数据格式错误，长度不足50字节");
                 return Result.error("PLC数据格式错误");
             }
+            //配置时不是新订单
+            dataArray[4]="00";
             String dataBeforeVB50 = String.join(" ", Arrays.copyOfRange(dataArray, 0, 51));
             
             // 将设置值转换为两位16进制字符串

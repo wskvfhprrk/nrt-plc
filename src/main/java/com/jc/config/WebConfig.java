@@ -24,7 +24,8 @@ public class WebConfig implements WebMvcConfigurer, WebSocketConfigurer {
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(new MyWebSocketHandler(), "/ws")
                 .setAllowedOrigins("http://127.0.0.1:8080", "http://localhost:8080", 
-                      "http://127.0.0.1:8081", "http://localhost:8081")
+                      "http://127.0.0.1:8081", "http://localhost:8081",
+                      "http://192.168.3.139:8080", "http://192.168.3.139:8081")
                 .withSockJS();
     }
 
