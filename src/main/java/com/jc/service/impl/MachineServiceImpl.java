@@ -213,12 +213,12 @@ public class MachineServiceImpl implements MachineService {
                       .append(String.format("%02X", settings.getPrice4())).append(" ")                  // VB62: 价格4(0-255元)
                       .append(String.format("%02X", settings.getPrice5())).append(" ");                 // VB63: 价格5(0-255元)
             
-            // 添加配料重量设置（VB62-VB71，每个配料用2字节表示）
-            appendTwoByteHex(settingsData, settings.getIngredient1Weight());                           // VB64-65: 配料1重量(0-255g)
-            appendTwoByteHex(settingsData, settings.getIngredient2Weight());                           // VB66-67: 配料2重量(0-255g)
-            appendTwoByteHex(settingsData, settings.getIngredient3Weight());                           // VB68-69: 配料3重量(0-255g)
-            appendTwoByteHex(settingsData, settings.getIngredient4Weight());                           // VB70-71: 配料4重量(0-255g)
-            appendTwoByteHex(settingsData, settings.getIngredient5Weight());                           // VB72-73: 配料5重量(0-255g)
+            // 添加配料重量设置 (VB65-VB69，每个配料1字节)
+            settingsData.append(String.format("%02X", settings.getIngredient1Weight())).append(" ");   // VB65: 配料1重量(0-255g)
+            settingsData.append(String.format("%02X", settings.getIngredient2Weight())).append(" ");   // VB66: 配料2重量(0-255g)
+            settingsData.append(String.format("%02X", settings.getIngredient3Weight())).append(" ");   // VB67: 配料3重量(0-255g)
+            settingsData.append(String.format("%02X", settings.getIngredient4Weight())).append(" ");   // VB68: 配料4重量(0-255g)
+            settingsData.append(String.format("%02X", settings.getIngredient5Weight())).append(" ");   // VB69: 配料5重量(0-255g)
             
             // 添加机器人设置
             settingsData.append(String.format("%02X", settings.getBeefSoupTime())).append(" ");        // VB74: 汤牛肉时间设置(0-255秒)
@@ -995,12 +995,12 @@ public class MachineServiceImpl implements MachineService {
                 settings.setPrice4(Integer.parseInt(data[63], 16));                        // VB63: 价格4(0-255元)
                 settings.setPrice5(Integer.parseInt(data[64], 16));                        // VB64: 价格5(0-255元)
 
-                // 解析配料重量设置 (VB65-VB74，每个配料2字节)
-                settings.setIngredient1Weight(Integer.parseInt(data[65], 16));            // VB65-66: 配料1重量(0-255g)
-                settings.setIngredient2Weight(Integer.parseInt(data[66], 16));            // VB67-68: 配料2重量(0-255g)
-                settings.setIngredient3Weight(Integer.parseInt(data[67], 16));            // VB69-70: 配料3重量(0-255g)
-                settings.setIngredient4Weight(Integer.parseInt(data[68], 16));            // VB71-72: 配料4重量(0-255g)
-                settings.setIngredient5Weight(Integer.parseInt(data[69], 16));            // VB73-74: 配料5重量(0-255g)
+                // 解析配料重量设置 (VB65-VB69，每个配料1字节)
+                settings.setIngredient1Weight(Integer.parseInt(data[65], 16));            // VB65: 配料1重量(0-255g)
+                settings.setIngredient2Weight(Integer.parseInt(data[66], 16));            // VB66: 配料2重量(0-255g)
+                settings.setIngredient3Weight(Integer.parseInt(data[67], 16));            // VB67: 配料3重量(0-255g)
+                settings.setIngredient4Weight(Integer.parseInt(data[68], 16));            // VB68: 配料4重量(0-255g)
+                settings.setIngredient5Weight(Integer.parseInt(data[69], 16));            // VB69: 配料5重量(0-255g)
                 
                 // 解析机器人设置
                 if (data.length > 74) {
@@ -1075,12 +1075,12 @@ public class MachineServiceImpl implements MachineService {
                 settings.setPrice4(Integer.parseInt(data[63], 16));                        // VB63: 价格4(0-255元)
                 settings.setPrice5(Integer.parseInt(data[64], 16));                        // VB64: 价格5(0-255元)
 
-                // 解析配料重量设置 (VB65-VB74，每个配料2字节)
-                settings.setIngredient1Weight(Integer.parseInt(data[65], 16));            // VB65-66: 配料1重量(0-255g)
-                settings.setIngredient2Weight(Integer.parseInt(data[66], 16));            // VB67-68: 配料2重量(0-255g)
-                settings.setIngredient3Weight(Integer.parseInt(data[67], 16));            // VB69-70: 配料3重量(0-255g)
-                settings.setIngredient4Weight(Integer.parseInt(data[68], 16));            // VB71-72: 配料4重量(0-255g)
-                settings.setIngredient5Weight(Integer.parseInt(data[69], 16));            // VB73-74: 配料5重量(0-255g)
+                // 解析配料重量设置 (VB65-VB69，每个配料1字节)
+                settings.setIngredient1Weight(Integer.parseInt(data[65], 16));            // VB65: 配料1重量(0-255g)
+                settings.setIngredient2Weight(Integer.parseInt(data[66], 16));            // VB66: 配料2重量(0-255g)
+                settings.setIngredient3Weight(Integer.parseInt(data[67], 16));            // VB67: 配料3重量(0-255g)
+                settings.setIngredient4Weight(Integer.parseInt(data[68], 16));            // VB68: 配料4重量(0-255g)
+                settings.setIngredient5Weight(Integer.parseInt(data[69], 16));            // VB69: 配料5重量(0-255g)
 
                 // 解析机器人设置
                 if (data.length > 74) {
