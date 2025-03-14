@@ -3,6 +3,8 @@ package com.jc.service;
 import com.jc.config.Result;
 import com.jc.entity.MachineSettings;
 import com.jc.entity.MachineStatus;
+import com.jc.entity.Order;
+import com.jc.entity.PlcOrder;
 import java.util.Map;
 
 public interface MachineService {
@@ -12,4 +14,7 @@ public interface MachineService {
     Result clearAllAlerts();
     MachineSettings getMachineSettings();
     MachineSettings reset();
+    Result addNewOrder(Order order);
+    Result sendPlcOrder(PlcOrder plcOrder);
+    Result resetAlarmViaPlc();
 }

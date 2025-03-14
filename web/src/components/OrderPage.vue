@@ -256,7 +256,7 @@ export default {
     connectWebSocket() {
       // 直接连接到后端WebSocket服务器
       // 使用实际的后端服务器地址，而不是前端服务器地址
-      const backendUrl = 'ws://0.0.0.0:8080/ws'; // 修改为后端实际地址和端口
+      const backendUrl = 'ws://localhost:8080/ws'; // 修改为后端实际地址和端口
       
       try {
         this.ws = new WebSocket(backendUrl);
@@ -309,6 +309,14 @@ export default {
         this.ws.close();
       }
       this.connectWebSocket();
+    },
+    checkWebSocketStatus() {
+      if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+        console.log("WebSocket 未连接或连接已断开，尝试重新连接");
+        this.connectWebSocket();
+      } else {
+        console.log("WebSocket 连接正常，状态:", this.ws.readyState);
+      }
     }
   },
   mounted() {
@@ -323,6 +331,9 @@ export default {
     // 组件卸载前清理资源
     if (this.orderDataInterval) {
       clearInterval(this.orderDataInterval);
+    }
+    if (this.wsCheckInterval) {
+      clearInterval(this.wsCheckInterval);
     }
     if (this.ws) {
       this.ws.close();

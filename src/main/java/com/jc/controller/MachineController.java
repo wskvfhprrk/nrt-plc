@@ -2,6 +2,8 @@ package com.jc.controller;
 
 import com.jc.config.Result;
 import com.jc.entity.MachineSettings;
+import com.jc.entity.Order;
+import com.jc.entity.PlcOrder;
 import com.jc.service.MachineService; // 导入服务接口
 import com.jc.service.impl.PlcServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +55,24 @@ public class MachineController {
     @PutMapping("/alerts/reset")
     public Result resetAlert(@RequestParam int alertId) {
         return machineService.resetAlert(alertId);
+    }
+    
+    // 添加通过PLC复位报警的端点
+    @PostMapping("/alerts/reset-via-plc")
+    public Result resetAlarmViaPlc() {
+        return machineService.resetAlarmViaPlc();
+    }
+
+//    // 添加处理新订单的端点
+//    @PostMapping("/order")
+//    public Result processOrder(@RequestBody Order order) {
+//        return machineService.addNewOrder(order);
+//    }
+    
+    // 添加处理PLC订单的端点
+    @PostMapping("/plc-order")
+    public Result processPlcOrder(@RequestBody PlcOrder plcOrder) {
+        return machineService.sendPlcOrder(plcOrder);
     }
 
     // 添加重置接口

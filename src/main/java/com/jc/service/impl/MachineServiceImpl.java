@@ -6,6 +6,8 @@ import com.jc.entity.InputPoint;
 import com.jc.entity.OutputPoint;
 import com.jc.entity.Alert;
 import com.jc.entity.MachineSettings;
+import com.jc.entity.Order;
+import com.jc.entity.PlcOrder;
 import com.jc.service.MachineService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -1111,4 +1113,217 @@ public class MachineServiceImpl implements MachineService {
         }
     }
 
+    /**
+     * 添加新订单并将订单数据发送到PLC
+     * 
+     * @param order 订单对象
+     * @return 处理结果
+     */
+    @Override
+    public Result addNewOrder(Order order) {
+        try {
+            log.info("接收到新订单: {}", order.getOrderId());
+            
+            // 将Order转换为PlcOrder
+            PlcOrder plcOrder = PlcOrder.fromOrder(order);
+            
+            // 发送到PLC
+            return sendPlcOrder(plcOrder);
+        } catch (Exception e) {
+            log.error("处理订单失败: {}", e.getMessage());
+            return Result.error("处理订单失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 发送PLC订单数据到PLC
+     * 
+     * @param plcOrder PLC订单对象
+     * @return 处理结果
+     */
+    @Override
+    public Result sendPlcOrder(PlcOrder plcOrder) {
+        try {
+            log.info("准备发送PLC订单: {}", plcOrder.getOrderId());
+            
+            // 从redis中读取当前PLC数据
+            String currentPlcData = plcServiceImpl.readSentData();
+            if (currentPlcData == null || currentPlcData.isEmpty()) {
+                log.error("无法从Redis获取PLC数据");
+                return Result.error("无法获取PLC数据");
+            }
+            
+            // 规范化数据格式：确保每个字节之间只有一个空格
+            currentPlcData = currentPlcData.replaceAll("\\s+", " ").trim();
+            
+            // 分割数据
+            String[] dataArray = currentPlcData.split(" ");
+            log.info("从Redis读取到PLC数据，共{}字节", dataArray.length);
+            
+            // 检查数据格式
+            if (dataArray.length < 2 || !dataArray[0].equals(PLC_DATA_START) || !dataArray[dataArray.length - 1].equals(PLC_DATA_END)) {
+                log.error("PLC数据格式错误：开头必须为00，结尾必须为FF");
+                return Result.error("PLC数据格式错误");
+            }
+            
+            // 处理可能的多字节表示问题
+            List<String> normalizedData = new ArrayList<>();
+            for (String byteStr : dataArray) {
+                // 如果字节字符串长度超过2，则可能是多字节表示
+                if (byteStr.length() > 2) {
+                    // 每两个字符分割成一个字节
+                    for (int i = 0; i < byteStr.length(); i += 2) {
+                        if (i + 2 <= byteStr.length()) {
+                            normalizedData.add(byteStr.substring(i, i + 2));
+                        } else {
+                            normalizedData.add(byteStr.substring(i));
+                        }
+                    }
+                } else {
+                    normalizedData.add(byteStr);
+                }
+            }
+            
+            // 更新数据数组
+            dataArray = normalizedData.toArray(new String[0]);
+            log.info("规范化后的PLC数据，共{}字节", dataArray.length);
+            
+            // 获取PLC订单数据
+            int priceLevel = plcOrder.getPriceLevel() != null ? plcOrder.getPriceLevel() : 1;
+            int recipeCode = plcOrder.getRecipeCode() != null ? plcOrder.getRecipeCode() : 0;
+            int foodType = plcOrder.getFoodType() != null ? plcOrder.getFoodType() : 1;
+            boolean isNewOrder = plcOrder.getIsNewOrder() != null ? plcOrder.getIsNewOrder() : true;
+            
+            // 修改前4个字节的数据（VB0-VB3）
+            // VB0: 输入开头检验
+            // VB1: 当前加工订单的价格值（1-5）
+            // VB2: 当前配料配方（0表示无）
+            // VB3: 种类（1:牛肉粉丝，2:牛肉面）
+            // VB4: 是否新订单（1为新订单）
+            
+            // 保留VB0不变
+            
+            // 更新VB1-VB4
+            dataArray[1] = String.format("%02X", priceLevel);
+            dataArray[2] = String.format("%02X", recipeCode);
+            dataArray[3] = String.format("%02X", foodType);
+            dataArray[4] = isNewOrder ? "01" : "00";
+            
+            // 重新组合数据
+            String updatedPlcData = String.join(" ", dataArray);
+            
+            // 存入Redis并发送到PLC
+            redisTemplate.opsForValue().set(PlcServiceImpl.PLC_SEND_DATA_KEY, updatedPlcData);
+            plcServiceImpl.sendDataToPlc();
+            
+            log.info("订单数据已发送到PLC: 价格等级={}, 配料配方={}, 食品类型={}, 是否新订单={}", 
+                    priceLevel, recipeCode, foodType, isNewOrder);
+            
+            return Result.success("订单已成功发送到PLC");
+        } catch (Exception e) {
+            log.error("发送订单到PLC失败: {}", e.getMessage());
+            return Result.error("发送订单失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 通过PLC复位报警
+     * 
+     * @return 处理结果
+     */
+    @Override
+    public Result resetAlarmViaPlc() {
+        try {
+            log.info("准备通过PLC复位报警");
+            
+            // 从redis中读取当前PLC数据
+            String currentPlcData = plcServiceImpl.readSentData();
+            if (currentPlcData == null || currentPlcData.isEmpty()) {
+                log.error("无法从Redis获取PLC数据");
+                return Result.error("无法获取PLC数据");
+            }
+            
+            // 规范化数据格式：确保每个字节之间只有一个空格
+            currentPlcData = currentPlcData.replaceAll("\\s+", " ").trim();
+            
+            // 分割数据
+            String[] dataArray = currentPlcData.split(" ");
+            log.info("从Redis读取到PLC数据，共{}字节", dataArray.length);
+            
+            // 检查数据格式
+            if (dataArray.length < 2 || !dataArray[0].equals(PLC_DATA_START) || !dataArray[dataArray.length - 1].equals(PLC_DATA_END)) {
+                log.error("PLC数据格式错误：开头必须为00，结尾必须为FF");
+                return Result.error("PLC数据格式错误");
+            }
+            
+            // 处理可能的多字节表示问题
+            List<String> normalizedData = new ArrayList<>();
+            for (String byteStr : dataArray) {
+                // 如果字节字符串长度超过2，则可能是多字节表示
+                if (byteStr.length() > 2) {
+                    // 每两个字符分割成一个字节
+                    for (int i = 0; i < byteStr.length(); i += 2) {
+                        if (i + 2 <= byteStr.length()) {
+                            normalizedData.add(byteStr.substring(i, i + 2));
+                        } else {
+                            normalizedData.add(byteStr.substring(i));
+                        }
+                    }
+                } else {
+                    normalizedData.add(byteStr);
+                }
+            }
+            
+            // 更新数据数组
+            dataArray = normalizedData.toArray(new String[0]);
+            log.info("规范化后的PLC数据，共{}字节", dataArray.length);
+            
+            // 确保数组长度足够
+            if (dataArray.length <= 5) {
+                log.error("PLC数据长度不足，无法设置复位报警位");
+                return Result.error("PLC数据长度不足");
+            }
+            
+            // 修改VB5（PLC实际为VB105）的值为1，表示复位报警
+            dataArray[5] = "01";
+            
+            // 重新组合数据
+            String updatedPlcData = String.join(" ", dataArray);
+            
+            // 存入Redis并发送到PLC
+            redisTemplate.opsForValue().set(PlcServiceImpl.PLC_SEND_DATA_KEY, updatedPlcData);
+            plcServiceImpl.sendDataToPlc();
+            
+            log.info("复位报警指令已发送到PLC");
+            
+            // 延迟一段时间后将VB5恢复为0
+            try {
+                Thread.sleep(1000); // 延迟1秒
+                
+                // 重新读取PLC数据
+                currentPlcData = plcServiceImpl.readSentData();
+                dataArray = currentPlcData.split(" ");
+                
+                // 将VB5恢复为0
+                dataArray[5] = "00";
+                
+                // 重新组合数据
+                updatedPlcData = String.join(" ", dataArray);
+                
+                // 存入Redis并发送到PLC
+                redisTemplate.opsForValue().set(PlcServiceImpl.PLC_SEND_DATA_KEY, updatedPlcData);
+                plcServiceImpl.sendDataToPlc();
+                
+                log.info("复位报警位已恢复为0");
+            } catch (InterruptedException e) {
+                log.warn("恢复复位报警位时被中断: {}", e.getMessage());
+                Thread.currentThread().interrupt();
+            }
+            
+            return Result.success("复位报警指令已发送到PLC");
+        } catch (Exception e) {
+            log.error("发送复位报警指令到PLC失败: {}", e.getMessage());
+            return Result.error("发送复位报警指令失败: " + e.getMessage());
+        }
+    }
 }
