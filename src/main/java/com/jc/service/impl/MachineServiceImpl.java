@@ -1347,4 +1347,166 @@ public class MachineServiceImpl implements MachineService {
         
         return priceToLevelMap.getOrDefault(actualPrice, 1); // 默认返回1
     }
+
+    /**
+     * 处理手动指令
+     * 
+     * @param commandData 指令数据
+     * @return 处理结果
+     */
+    @Override
+    public Result processManualCommand(Map<String, Object> commandData) {
+        try {
+            log.info("接收到手动指令: {}", commandData);
+            
+            // 获取指令ID和名称
+            Object commandIdObj = commandData.get("commandId");
+            String commandName = (String) commandData.get("commandName");
+            Boolean isNewOrder = (Boolean) commandData.getOrDefault("isNewOrder", false);
+            
+            // 转换commandId为整数或字符串
+            String commandId;
+            if (commandIdObj instanceof Integer) {
+                commandId = String.valueOf(commandIdObj);
+            } else {
+                commandId = (String) commandIdObj;
+            }
+            
+            // 从redis中读取当前PLC数据
+            String currentPlcData = plcServiceImpl.readSentData();
+            if (currentPlcData == null || currentPlcData.isEmpty()) {
+                log.error("无法从Redis获取PLC数据");
+                return Result.error("无法获取PLC数据");
+            }
+            
+            // 规范化数据格式
+            currentPlcData = currentPlcData.replaceAll("\\s+", " ").trim();
+            String[] dataArray = currentPlcData.split(" ");
+            
+            // 根据指令ID处理不同的手动指令
+            switch (commandId) {
+                case "emergencyStop":
+                    // 处理急停指令
+                    return handleEmergencyStop(dataArray);
+                    
+                case "reset":
+                    // 处理复位指令
+                    return handleReset(dataArray);
+                    
+                default:
+                    // 处理其他数字ID的指令
+                    try {
+                        int id = Integer.parseInt(commandId);
+                        // 检查是否有额外参数
+                        Object numberObj = commandData.get("number");
+                        if (numberObj != null) {
+                            // 有参数的指令处理
+                            String number = String.valueOf(numberObj);
+                            return handleCommandWithParameter(id, number, isNewOrder, dataArray);
+                        } else {
+                            // 无参数的指令处理
+                            return handleCommand(id,  dataArray);
+                        }
+                    } catch (NumberFormatException e) {
+                        log.error("无效的指令ID: {}", commandId);
+                        return Result.error("无效的指令ID");
+                    }
+            }
+        } catch (Exception e) {
+            log.error("处理手动指令失败: {}", e.getMessage());
+            return Result.error("处理手动指令失败: " + e.getMessage());
+        }
+    }
+
+    // 处理急停指令
+    private Result handleEmergencyStop(String[] dataArray) {
+        try {
+            // 确保数组长度足够
+            if (dataArray.length <= 10) {
+                return Result.error("PLC数据长度不足");
+            }
+            
+            // 修改VB10.7为1，表示急停
+            // 获取VB10的当前值
+            int vb10Value = Integer.parseInt(dataArray[10], 16);
+            // 设置第7位为1 (0x80 = 10000000)
+            vb10Value |= 0x80;
+            dataArray[10] = String.format("%02X", vb10Value);
+            
+            // 重新组合数据并发送
+            String updatedPlcData = String.join(" ", dataArray);
+            redisTemplate.opsForValue().set(PlcServiceImpl.PLC_SEND_DATA_KEY, updatedPlcData);
+            plcServiceImpl.sendDataToPlc();
+            
+            log.info("急停指令已发送到PLC");
+            return Result.success("急停指令已发送");
+        } catch (Exception e) {
+            log.error("发送急停指令失败: {}", e.getMessage());
+            return Result.error("发送急停指令失败: " + e.getMessage());
+        }
+    }
+
+    // 处理复位指令
+    private Result handleReset(String[] dataArray) {
+        try {
+            // 确保数组长度足够
+            if (dataArray.length <= 5) {
+                return Result.error("PLC数据长度不足");
+            }
+            
+            // 修改VB106为1，表示复位
+            dataArray[6] = "01";
+            
+            // 重新组合数据并发送
+            String updatedPlcData = String.join(" ", dataArray);
+            redisTemplate.opsForValue().set(PlcServiceImpl.PLC_SEND_DATA_KEY, updatedPlcData);
+            plcServiceImpl.sendDataToPlc();
+            
+            log.info("复位指令已发送到PLC");
+            return Result.success("复位指令已发送");
+        } catch (Exception e) {
+            log.error("发送复位指令失败: {}", e.getMessage());
+            return Result.error("发送复位指令失败: " + e.getMessage());
+        }
+    }
+
+    // 处理其他数字ID的指令
+    private Result handleCommand(int commandId, String[] dataArray) {
+        try {
+
+            // 当手动时，新订单为0
+            dataArray[4] = "00"; // VB104 新订单标志设为0
+            
+            // 处理开关灯特殊情况
+            if (commandId == 23) { // 打开柜灯
+                dataArray[8] = "01"; // VB108 打开柜灯为1时打开
+                log.info("打开柜灯指令已发送到VB108");
+            } else if (commandId == 24) { // 关闭柜灯
+                dataArray[8] = "00"; // VB108 关闭柜灯为0时关闭
+                log.info("关闭柜灯指令已发送到VB108");
+            } else {
+                // 其他所有按钮ID都写入VB107
+                dataArray[7] = String.format("%02X", commandId);
+                log.info("已发送指令ID {} 到VB107", commandId);
+            }
+            
+            // 重新组合数据并发送
+            String updatedPlcData = String.join(" ", dataArray);
+            redisTemplate.opsForValue().set(PlcServiceImpl.PLC_SEND_DATA_KEY, updatedPlcData);
+            plcServiceImpl.sendDataToPlc();
+
+            return Result.success("指令已处理");
+        } catch (Exception e) {
+            log.error("处理指令失败: {}", e.getMessage());
+            return Result.error("处理指令失败: " + e.getMessage());
+        }
+    }
+
+    // 处理带参数的指令
+    private Result handleCommandWithParameter(int id, String parameter, boolean isNewOrder, String[] dataArray) {
+        // 实现带参数的处理逻辑
+        // 这里需要根据指令ID、参数和是否新订单进行相应的处理
+        log.info("处理带参数的指令: ID={}, 参数={}, 是否新订单={}", id, parameter, isNewOrder);
+        return Result.success("指令已处理");
+    }
 }

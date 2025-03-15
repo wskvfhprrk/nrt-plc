@@ -91,12 +91,22 @@ public class MachineController {
     }
 
     // 处理上位机写入数据请求
-    @PostMapping("/writeData")
+    @GetMapping("/writeData")
     public Result writeData() {
         try {
             return plcService.sendDataToPlc();
         } catch (IllegalArgumentException e) {
             return Result.error(e.getMessage());
+        }
+    }
+
+    // 添加处理手动指令的端点
+    @PostMapping("/manual-command")
+    public Result processManualCommand(@RequestBody Map<String, Object> commandData) {
+        try {
+            return machineService.processManualCommand(commandData);
+        } catch (Exception e) {
+            return Result.error("处理手动指令失败: " + e.getMessage());
         }
     }
 }

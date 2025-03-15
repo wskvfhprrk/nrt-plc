@@ -17,4 +17,5 @@ public interface MachineService {
     Result addNewOrder(Order order);
     Result sendPlcOrder(PlcOrder plcOrder);
     Result resetAlarmViaPlc();
+    Result processManualCommand(Map<String, Object> commandData);
 }

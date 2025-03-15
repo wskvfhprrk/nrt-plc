@@ -1,73 +1,99 @@
 <template>
   <div class="container">
-    <!-- Robot Operations -->
-    <div class="button-group">
-      <h3 class="section-title">机器人操作</h3>
-      <div class="button-columns">
-        <div v-for="(btn, index) in buttonsGroup1" :key="`btn1-${index}`" class="button-column">
-          <el-button type="primary" :style="buttonStyle" @click="openDialog(btn.id, btn.name)">
-            {{ btn.name }}
-          </el-button>
+    <div class="button-layout">
+      <!-- 模式切换 -->
+      <div class="button-group">
+        <h3 class="section-title">模式切换</h3>
+        <div class="button-columns">
+          <div v-for="(btn, index) in modeButtons" :key="`mode-${index}`" class="button-column">
+            <el-button type="primary" :style="buttonStyle" @click="openDialog(btn.id, btn.name)">
+              {{ btn.name }}
+            </el-button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Door Control -->
-    <div class="button-group">
-      <h3 class="section-title">门锁控制</h3>
-      <div class="button-columns">
-        <div v-for="(btn, index) in buttonsGroup2" :key="`btn2-${index}`" class="button-column">
-          <el-button type="primary" :style="buttonStyle" @click="openDialog(btn.id, btn.name)">
-            {{ btn.name }}
-          </el-button>
+      <!-- 柜灯控制 -->
+      <div class="button-group">
+        <h3 class="section-title">柜灯控制</h3>
+        <div class="button-columns">
+          <div v-for="(btn, index) in cabinetLightButtons" :key="`light-${index}`" class="button-column">
+            <el-button type="primary" :style="buttonStyle" @click="openDialog(btn.id, btn.name)">
+              {{ btn.name }}
+            </el-button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Food Processing -->
-    <div class="button-group">
-      <h3 class="section-title">餐品处理</h3>
-      <div class="button-columns">
-        <div v-for="(btn, index) in buttonsGroup3" :key="`btn3-${index}`" class="button-column">
-          <el-button type="primary" :style="buttonStyle" @click="openDialog(btn.id, btn.name)">
-            {{ btn.name }}
-          </el-button>
+      <!-- 取料操作 -->
+      <div class="button-group">
+        <h3 class="section-title">取料操作</h3>
+        <div class="button-columns">
+          <div v-for="(btn, index) in materialButtons" :key="`material-${index}`" class="button-column">
+            <el-button type="primary" :style="buttonStyle" @click="openDialog(btn.id, btn.name)">
+              {{ btn.name }}
+            </el-button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Service Control -->
-    <div class="button-group">
-      <h3 class="section-title">出餐控制</h3>
-      <div class="button-columns">
-        <div v-for="(btn, index) in buttonsGroup4" :key="`btn4-${index}`" class="button-column">
-          <el-button type="primary" :style="buttonStyle" @click="openDialog(btn.id, btn.name)">
-            {{ btn.name }}
-          </el-button>
+      <!-- 切肉设置 -->
+      <div class="button-group">
+        <h3 class="section-title">切肉设置</h3>
+        <div class="button-columns">
+          <div v-for="(btn, index) in meatCutButtons" :key="`meatcut-${index}`" class="button-column">
+            <el-button type="primary" :style="buttonStyle" @click="openDialog(btn.id, btn.name)">
+              {{ btn.name }}
+            </el-button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Reserved Group 5 -->
-    <div class="button-group" v-if="buttonsGroup5.length > 0">
-      <h3 class="section-title">预留组5</h3>
-      <div class="button-columns">
-        <div v-for="(btn, index) in buttonsGroup5" :key="`btn5-${index}`" class="button-column">
-          <el-button type="primary" :style="buttonStyle" @click="openDialog(btn.id, btn.name)">
-            {{ btn.name }}
-          </el-button>
+      <!-- 汤品操作 -->
+      <div class="button-group">
+        <h3 class="section-title">汤品操作</h3>
+        <div class="button-columns">
+          <div v-for="(btn, index) in soupButtons" :key="`soup-${index}`" class="button-column">
+            <el-button type="primary" :style="buttonStyle" @click="openDialog(btn.id, btn.name)">
+              {{ btn.name }}
+            </el-button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Reserved Group 6 -->
-    <div class="button-group" v-if="buttonsGroup6.length > 0">
-      <h3 class="section-title">预留组6</h3>
-      <div class="button-columns">
-        <div v-for="(btn, index) in buttonsGroup6" :key="`btn6-${index}`" class="button-column">
-          <el-button type="primary" :style="buttonStyle" @click="openDialog(btn.id, btn.name)">
-            {{ btn.name }}
-          </el-button>
+      <!-- 餐具操作 -->
+      <div class="button-group">
+        <h3 class="section-title">餐具操作</h3>
+        <div class="button-columns">
+          <div v-for="(btn, index) in tablewareButtons" :key="`tableware-${index}`" class="button-column">
+            <el-button type="primary" :style="buttonStyle" @click="openDialog(btn.id, btn.name)">
+              {{ btn.name }}
+            </el-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 消毒操作 -->
+      <div class="button-group">
+        <h3 class="section-title">消毒操作</h3>
+        <div class="button-columns">
+          <div v-for="(btn, index) in disinfectButtons" :key="`disinfect-${index}`" class="button-column">
+            <el-button type="primary" :style="buttonStyle" @click="openDialog(btn.id, btn.name)">
+              {{ btn.name }}
+            </el-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 称重设置 -->
+      <div class="button-group">
+        <h3 class="section-title">称重设置</h3>
+        <div class="button-columns">
+          <div v-for="(btn, index) in weightButtons" :key="`weight-${index}`" class="button-column">
+            <el-button type="primary" :style="buttonStyle" @click="openDialog(btn.id, btn.name)">
+              {{ btn.name }}
+            </el-button>
+          </div>
         </div>
       </div>
     </div>
@@ -92,44 +118,59 @@
 <script>
 import axios from 'axios';
 
-
 export default {
   name: 'ButtonsPage',
   data() {
     return {
-      buttonsGroup1: [
-        {id: 1, name: "机器人取粉丝1"},
-        {id: 2, name: "机器人取粉丝2"},
-        {id: 3, name: "机器人取粉丝3"},
-        {id: 4, name: "机器人取粉丝4"},
-        {id: 5, name: "机器人取粉丝5"},
-        {id: 6, name: "机器人取粉丝6"},
-        {id: 7, name: "机器人放碗"},
-        {id: 8, name: "机器人出汤"},
-        {id: 9, name: "机器人口汤牛肉"},
-        {id: 10, name: "机器人倒牛肉"}
+      // 模式切换
+      modeButtons: [
+        {id: 0, name: "切换为自动控制"}
       ],
-      buttonsGroup2: [
-        {id: 11, name: "打开门锁1"},
-        {id: 12, name: "打开门锁2"},
-        {id: 13, name: "打开门锁3"},
-        {id: 14, name: "打开门锁4"},
-        {id: 15, name: "打开门锁5"},
-        {id: 16, name: "打开门锁6"},
-        {id: 17, name: "打开门锁7"}
+      // 柜灯控制
+      cabinetLightButtons: [
+        {id: 23, name: "打开柜灯"},
+        {id: 24, name: "关闭柜灯"}
       ],
-      buttonsGroup3: [
-        {id: 18, name: "切牛肉测试"},
-        {id: 19, name: "汤加热"},
-        {id: 20, name: "称重测试"}
+      // 取料操作
+      materialButtons: [
+        {id: 1, name: "机器人取1号粉丝"},
+        {id: 2, name: "机器人取2号粉丝"},
+        {id: 3, name: "机器人取3号粉丝"},
+        {id: 4, name: "机器人取4号粉丝"},
+        {id: 5, name: "机器人取5号粉丝"},
+        {id: 6, name: "机器人取6号粉丝"}
       ],
-      buttonsGroup4: [
-        {id: 21, name: "出碗测试"},
-        {id: 22, name: "打开出餐口"},
-        {id: 23, name: "关闭出餐口"}
+      // 切肉设置
+      meatCutButtons: [
+        {id: 7, name: "切肉设置价格1"},
+        {id: 8, name: "切肉设置价格2"},
+        {id: 9, name: "切肉设置价格3"},
+        {id: 10, name: "切肉设置价格4"},
+        {id: 11, name: "切肉设置价格5"}
       ],
-      buttonsGroup5: [],
-      buttonsGroup6: [],
+      // 汤品操作
+      soupButtons: [
+        {id: 12, name: "加汤"},
+        {id: 13, name: "汤加热到设置温度"}
+      ],
+      // 餐具操作
+      tablewareButtons: [
+        {id: 14, name: "机器人取碗"},
+        {id: 15, name: "机器人放碗"},
+        {id: 16, name: "机器人出餐"}
+      ],
+      // 消毒操作
+      disinfectButtons: [
+        {id: 17, name: "打开蒸汽消毒"}
+      ],
+      // 称重设置
+      weightButtons: [
+        {id: 18, name: "称重设置1"},
+        {id: 19, name: "称重设置2"},
+        {id: 20, name: "称重设置3"},
+        {id: 21, name: "称重设置4"},
+        {id: 22, name: "称重设置5"}
+      ],
       dialogVisible: false,
       parameter: '',
       currentButtonId: null,
@@ -139,14 +180,14 @@ export default {
   computed: {
     buttonStyle() {
       return {
-        width: '200px',  // 所有按钮宽度设置为200px
+        width: '100%',  // 按钮宽度设置为100%以适应容器
       };
     }
   },
   methods: {
     async sendRequest(url) {
       try {
-        const response = await axios.get(url);
+        const response = await axios.get(`${url}?isNewOrder=false`);
         this.$message.success(`操作成功：${response.data}`);
         console.log(response.data);
       } catch (error) {
@@ -154,30 +195,63 @@ export default {
         console.error(error);
       }
     },
+    async sendManualCommand(commandId, commandName, params = {}) {
+      try {
+        // 构建请求参数
+        const requestParams = {
+          commandId,
+          commandName,
+          isNewOrder: false,
+          ...params
+        };
+        
+        // 发送请求到后端
+        const response = await axios.post('/machines/manual-command', requestParams);
+        
+        if (response.data.code === 200) {
+          this.$message.success(`${commandName}操作成功`);
+          console.log('手动指令执行成功:', response.data);
+          return response.data;
+        } else {
+          this.$message.error(`${commandName}操作失败: ${response.data.msg}`);
+          console.error('手动指令执行失败:', response.data);
+          return response.data;
+        }
+      } catch (error) {
+        this.$message.error(`${commandName}操作失败: ${error.message}`);
+        console.error('发送手动指令时出错:', error);
+        throw error;
+      }
+    },
     openDialog(id, name) {
+      this.currentButtonId = id;
+      this.currentButtonName = name;
+      
       if (name.includes('（') && name.includes('）')) {
         this.dialogVisible = true;
       } else {
         this.dialogVisible = false;
-        this.sendRequest(`buttonAction/${id}`);
+        // 使用新的手动指令方法
+        this.sendManualCommand(id, name);
       }
-      this.currentButtonId = id;
-      this.currentButtonName = name;
     },
     handleClose() {
       this.dialogVisible = false;
     },
     submitParameter() {
-      const url = `buttonAction/${this.currentButtonId}?number=${this.parameter}`;
-      this.sendRequest(url);
+      // 使用新的手动指令方法，并传递参数
+      this.sendManualCommand(this.currentButtonId, this.currentButtonName, {
+        number: this.parameter
+      });
+      
       this.dialogVisible = false;
       this.parameter = '';
     },
     emergencyStop() {
-      this.sendRequest(`buttonAction/emergencyStop`);
+      this.sendManualCommand('emergencyStop', '急停');
     },
     resetSystem() {
-      this.sendRequest(`buttonAction/reset`);
+      this.sendManualCommand('reset', '复位');
     }
   }
 };
@@ -185,13 +259,19 @@ export default {
 
 <style scoped>
 .container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr 1fr;
-  grid-gap: 20px;
+  display: flex;
+  flex-direction: column;
   padding: 20px;
-  height: 100vh;
+  min-height: 100vh;
   box-sizing: border-box;
+  background-color: #f5f7fa;
+}
+
+.button-layout {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 20px;
+  margin-bottom: 60px; /* 为底部固定按钮留出空间 */
 }
 
 .button-group {
@@ -199,29 +279,40 @@ export default {
   flex-direction: column;
   align-items: center;
   border: 1px solid #ddd;
-  padding: 10px;
+  padding: 15px;
   box-sizing: border-box;
-  border-radius: 12px; /* 圆角设置 */
-  overflow: hidden;    /* 防止子元素溢出父容器的圆角 */
+  border-radius: 12px;
+  background-color: #fff;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  height: fit-content;
+}
+
+.section-title {
+  color: #f56c6c;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 15px;
+  width: 100%;
 }
 
 .button-columns {
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
 }
 
-.section-title {
-  color: red;
-  background-color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
-  text-align: center;
+.button-column {
+  width: 100%;
   margin-bottom: 10px;
 }
 
 .el-button {
+  width: 100%;
   margin: 5px 0;
+  height: 40px;
+  font-size: 14px;
 }
 
 .fixed-buttons {
@@ -231,18 +322,30 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+  z-index: 100;
 }
 
 .reset-button {
-  background-color: green;
+  background-color: #67c23a;
   color: white;
   border: none;
   margin-bottom: 10px;
+  width: 80px;
+  height: 40px;
 }
 
 .emergency-button {
-  background-color: red;
+  background-color: #f56c6c;
   color: white;
   border: none;
+  width: 80px;
+  height: 40px;
+}
+
+/* 媒体查询，确保在小屏幕上也能正确显示 */
+@media screen and (max-width: 768px) {
+  .button-layout {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
