@@ -98,7 +98,7 @@ public class RedisQueueService {
             Order order = JSON.parseObject(orderJson, Order.class);
             log.info("订单已移至已完成状态: {}, 缓存将在1分钟后失效", order.getOrderId());
         } else {
-            log.warn("没有正在制作的订单，无法移至已完成状态");
+//            log.warn("没有正在制作的订单，无法移至已完成状态");
         }
     }
 

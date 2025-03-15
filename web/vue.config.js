@@ -1,12 +1,12 @@
 const { defineConfig } = require('@vue/cli-service')
-const baseUrl = 'http://192.168.3.139:8080'; // 修改为实际的后端地址
+const baseUrl = 'http://localhost:8080'; // 修改为实际的后端地址
 
 module.exports = defineConfig({
     devServer: {
         port: 8081,
         host: '0.0.0.0', // 修改主机地址
         client: {
-            webSocketURL: 'ws://192.168.3.139:8080/ws', // 修改为实际的 WebSocket URL
+            webSocketURL: 'ws://localhost:8080/ws', // 修改为实际的 WebSocket URL
         },
        
         proxy: {
