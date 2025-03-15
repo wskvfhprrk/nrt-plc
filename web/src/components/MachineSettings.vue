@@ -136,7 +136,7 @@ export default {
       form: {       
         autoClean: false, // 默认自动清洗关闭
         nightMode: false, // 默认夜间模式关闭
-        openLockTime: 50,
+        openLockTime: 3,
         soupMaxTemperature: 90, // 汤最高温度
         soupMinTemperature: 70, // 汤最低温度
         soupQuantity: 10,
@@ -148,11 +148,11 @@ export default {
         price3: 20,
         price4: 25,
         price5: 30,
-        ingredient1Weight: 100,
-        ingredient2Weight: 150,
-        ingredient3Weight: 200,
-        ingredient4Weight: 250,
-        ingredient5Weight: 300,
+        ingredient1Weight: 0,
+        ingredient2Weight: 0,
+        ingredient3Weight: 0,
+        ingredient4Weight: 0,
+        ingredient5Weight: 0,
         beefSoupTime: 10, // 汤牛肉时间设置默认值
         robotAutoMode: false, // 机器人模式默认为手动
         robotEmergencyStop: false, // 机器人急停开关默认关闭

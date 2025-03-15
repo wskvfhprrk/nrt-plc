@@ -2,7 +2,6 @@ package com.jc.service.impl;
 
 import com.jc.config.IpConfig;
 import com.jc.config.Result;
-import com.jc.netty.client.NettyClientHandler;
 import com.jc.netty.server.NettyServerHandler;
 import com.jc.service.DeviceHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 
 /**
  * IO设备处理类——根据传感器自动控制设备
@@ -22,13 +20,11 @@ public class PlcServiceImpl implements DeviceHandler {
 
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
-    public Boolean sendOrderStatus = false;
 
     private static final String PLC_DATA_START = "00";
     private static final String PLC_DATA_END = "FF";
     public static final String PLC_DATA_KEY = "plc:data";
     public static final String PLC_SEND_DATA_KEY = "plc:send:data";
-    public static final String VB150_KEY = "VB150";
     @Autowired
     private NettyServerHandler nettyServerHandler;
     @Autowired
@@ -117,28 +113,6 @@ public class PlcServiceImpl implements DeviceHandler {
         }
     }
 
-    /**
-     * 从PLC消息中提取指定位置开始的值
-     * @param message PLC完整消息数据
-     * @param index 开始提取的索引位置
-     * @return 从指定索引开始到结束的所有值，以空格连接
-     */
-    private String extractVBValue(String message, int index) {
-        String[] parts = message.split(" ");
-        if (index >= parts.length) {
-            log.warn("索引超出数组范围：index={}, length={}", index, parts.length);
-            return "";
-        }
-        
-        StringBuilder result = new StringBuilder();
-        for (int i = index; i < parts.length; i++) {
-            result.append(parts[i]);
-            if (i < parts.length - 1) {
-                result.append(" ");
-            }
-        }
-        return result.toString();
-    }
 
 
 
@@ -169,7 +143,7 @@ public class PlcServiceImpl implements DeviceHandler {
      * @return 最近一次发送到PLC的数据，如果没有数据则返回null
      */
     public String readSentData() {
-        String sentData = redisTemplate.opsForValue().get(PLC_SEND_DATA_KEY);
+        String sentData = redisTemplate.opsForValue().get(PLC_DATA_KEY);
         if (isEmpty(sentData)) {
             log.warn("没有找到初始化数据");
             return "00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F 10 11 12 13 14 15 16 17 18 19 1A 1B 1C 1D 1E 1F 20 21 22 23 24 25 26 27 28 29 2A 2B 2C 2D 2E 2F 30 31 32 01 00 03 5A 46 0A 3C 28 50 04 06 08 0C 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 FF";

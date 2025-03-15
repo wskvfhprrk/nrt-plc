@@ -904,7 +904,7 @@ public class MachineServiceImpl implements MachineService {
     public MachineSettings getMachineSettings() {
         try {
             // 从PlcServiceImpl读取已发送的数据
-            String plcData = plcServiceImpl.readSentData();
+            String plcData = plcServiceImpl.readPlcData();
             if (plcData == null || plcData.isEmpty()) {
                 log.warn("未能从PLC缓存中读取设置数据，返回当前设置");
                 return currentSettings;
@@ -916,7 +916,8 @@ public class MachineServiceImpl implements MachineService {
             // 验证数据格式
             if (data.length < 2 || !data[0].equals(PLC_DATA_START) || !data[data.length - 1].equals(PLC_DATA_END)) {
                 log.error("PLC数据格式无效");
-                return currentSettings;
+//                return Result.error("PLC数据格式无效");
+                return null;
             }
 
             MachineSettings settings = new MachineSettings();
@@ -1281,7 +1282,7 @@ public class MachineServiceImpl implements MachineService {
      * @return 处理结果
      */
     @Override
-    public Result processManualCommand(Map<String, Object> commandData) {
+    public Result<String> processManualCommand(Map<String, Object> commandData) {
         try {
             log.info("接收到手动指令: {}", commandData);
             
@@ -1344,7 +1345,7 @@ public class MachineServiceImpl implements MachineService {
     }
 
     // 处理急停指令
-    private Result handleEmergencyStop(String[] dataArray) {
+    private Result<String> handleEmergencyStop(String[] dataArray) {
         try {
             dataArray[4] = "00";
             dataArray[6] = "00";
@@ -1364,7 +1365,7 @@ public class MachineServiceImpl implements MachineService {
     }
 
     // 处理复位指令
-    private Result handleReset(String[] dataArray) {
+    private Result<String> handleReset(String[] dataArray) {
         try {
             dataArray[4] = "00";
             dataArray[6] = "01";
@@ -1384,7 +1385,7 @@ public class MachineServiceImpl implements MachineService {
     }
 
     // 处理其他数字ID的指令
-    private Result handleCommand(int commandId, String[] dataArray) {
+    private Result<String> handleCommand(int commandId, String[] dataArray) {
         try {
 
             // 当手动时，新订单为0
@@ -1416,7 +1417,7 @@ public class MachineServiceImpl implements MachineService {
     }
 
     // 处理带参数的指令
-    private Result handleCommandWithParameter(int id, String parameter, boolean isNewOrder) {
+    private Result<String> handleCommandWithParameter(int id, String parameter, boolean isNewOrder) {
         // 实现带参数的处理逻辑
         // 这里需要根据指令ID、参数和是否新订单进行相应的处理
         log.info("处理带参数的指令: ID={}, 参数={}, 是否新订单={}", id, parameter, isNewOrder);

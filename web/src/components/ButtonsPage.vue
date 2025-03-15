@@ -107,7 +107,7 @@
     <!-- Dialog for Input Parameters -->
     <el-dialog title="输入参数" v-model="dialogVisible" :before-close="handleClose">
       <el-input v-model="parameter" placeholder="请输入参数"></el-input>
-      <template #footer>
+      <template >
         <el-button @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" @click="submitParameter">确定</el-button>
       </template>
@@ -180,7 +180,7 @@ export default {
   computed: {
     buttonStyle() {
       return {
-        width: '100%',  // 按钮宽度设置为100%以适应容器
+        width: '50%',  // 按钮宽度从100%改为50%
       };
     }
   },
@@ -264,7 +264,6 @@ export default {
   padding: 20px;
   min-height: 100vh;
   box-sizing: border-box;
-  background-color: #f5f7fa;
 }
 
 .button-layout {
@@ -282,10 +281,12 @@ export default {
   padding: 15px;
   box-sizing: border-box;
   border-radius: 12px;
-  background-color: #fff;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
   height: fit-content;
+  width: 50%;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .section-title {
@@ -306,14 +307,10 @@ export default {
 .button-column {
   width: 100%;
   margin-bottom: 10px;
+  display: flex;
+  justify-content: center;
 }
 
-.el-button {
-  width: 100%;
-  margin: 5px 0;
-  height: 40px;
-  font-size: 14px;
-}
 
 .fixed-buttons {
   position: fixed;
