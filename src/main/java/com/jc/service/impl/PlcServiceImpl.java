@@ -117,38 +117,6 @@ public class PlcServiceImpl implements DeviceHandler {
         }
     }
 
-
-
-
-
-
-    // 同步VB50到VB150
-    private void syncVB50ToVB150(String message) {
-        // 获取VB50的值
-        String vb50Value = extractVBValue(message, 50);
-        
-        // 从缓存中获取要发送到PLC的数据
-        String plcSendData = redisTemplate.opsForValue().get(PLC_SEND_DATA_KEY);
-        if (!isEmpty(plcSendData)) {
-            // 从PLC发送数据字符串中截取前51个字节(VB0-VB50)的数据，以空格分隔
-            String[] parts = plcSendData.split(" ");
-            // 截取前51个字节(VB0-VB50)的数据，以空格分隔
-            String dataUpToVB50 = String.join(" ", Arrays.copyOf(parts, 51));
-            // 组合数据
-            String updatedData = dataUpToVB50 + " " + vb50Value;
-            // 更新发送数据
-            redisTemplate.opsForValue().set(PLC_SEND_DATA_KEY, updatedData);
-//            log.info("已将VB50的值同步到VB150存进redis中: {}", updatedData);
-        } else {
-            log.warn("已将VB50的值同步到VB150到redis中失败");
-        }
-        
-        // 保持原有的VB150更新逻辑
-        redisTemplate.opsForValue().set(VB150_KEY, vb50Value);
-//        log.info("已将VB50的值同步到VB150: {}", vb50Value);
-    }
-
-
     /**
      * 从PLC消息中提取指定位置开始的值
      * @param message PLC完整消息数据
