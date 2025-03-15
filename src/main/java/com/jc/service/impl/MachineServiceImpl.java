@@ -147,20 +147,20 @@ public class MachineServiceImpl implements MachineService {
                 log.error("无法从Redis获取PLC数据");
                 return Result.error("无法获取PLC数据");
             }
-            
+
             // 规范化数据格式：确保每个字节之间只有一个空格
             currentPlcData = currentPlcData.replaceAll("\\s+", " ").trim();
-            
+
             // 分割数据
             String[] dataArray = currentPlcData.split(" ");
             log.info("从Redis读取到PLC数据，共{}字节", dataArray.length);
-            
+
             // 检查数据格式
             if (dataArray.length < 2 || !dataArray[0].equals(PLC_DATA_START) || !dataArray[dataArray.length - 1].equals(PLC_DATA_END)) {
                 log.error("PLC数据格式错误：开头必须为00，结尾必须为FF");
                 return Result.error("PLC数据格式错误");
             }
-            
+
             // 处理可能的多字节表示问题
             List<String> normalizedData = new ArrayList<>();
             for (String byteStr : dataArray) {
@@ -178,11 +178,11 @@ public class MachineServiceImpl implements MachineService {
                     normalizedData.add(byteStr);
                 }
             }
-            
+
             // 更新数据数组
             dataArray = normalizedData.toArray(new String[0]);
             log.info("规范化后的PLC数据，共{}字节", dataArray.length);
-            
+
             // 保留前50位数据（VB0-VB49）
             if (dataArray.length < 50) {
                 log.error("PLC数据格式错误，长度不足50字节");
@@ -191,10 +191,10 @@ public class MachineServiceImpl implements MachineService {
             //配置时不是新订单
             dataArray[4]="00";
             String dataBeforeVB50 = String.join(" ", Arrays.copyOfRange(dataArray, 0, 51));
-            
+
             // 将设置值转换为两位16进制字符串
             StringBuilder settingsData = new StringBuilder();
-            
+
             // 添加基本设置数据（VB150-VB199）
             settingsData.append(String.format("%02X", settings.getAutoClean() ? 1 : 0)).append(" ")      // VB50: 自动清洗开关(1:开启,0:关闭)
                       .append(String.format("%02X", settings.getNightMode() ? 1 : 0)).append(" ")        // VB51: 夜间模式开关(1:开启,0:关闭)
@@ -205,71 +205,71 @@ public class MachineServiceImpl implements MachineService {
                       .append(String.format("%02X", settings.getFanVentilationTime())).append(" ")       // VB56: 排油烟风扇通风时间(0-255分钟)
                       .append(String.format("%02X", settings.getElectricalBoxFanTemp())).append(" ")     // VB57: 电柜风扇通风温度(0-255℃)
                       .append(String.format("%02X", settings.getElectricalBoxFanHumidity())).append(" "); // VB58: 电柜风扇通风湿度(0-255%)
-            
+
             // 添加价格设置（VB57-VB61）
             settingsData.append(String.format("%02X", settings.getPrice1())).append(" ")                // VB59: 价格1(0-255元)
                       .append(String.format("%02X", settings.getPrice2())).append(" ")                  // VB60: 价格2(0-255元)
                       .append(String.format("%02X", settings.getPrice3())).append(" ")                  // VB61: 价格3(0-255元)
                       .append(String.format("%02X", settings.getPrice4())).append(" ")                  // VB62: 价格4(0-255元)
                       .append(String.format("%02X", settings.getPrice5())).append(" ");                 // VB63: 价格5(0-255元)
-            
+
             // 添加配料重量设置（每个配料用1字节表示）
             settingsData.append(String.format("%02X", settings.getIngredient1Weight())).append(" ");   // VB64: 配料1重量(0-255g)
             settingsData.append(String.format("%02X", settings.getIngredient2Weight())).append(" ");   // VB65: 配料2重量(0-255g)
             settingsData.append(String.format("%02X", settings.getIngredient3Weight())).append(" ");   // VB66: 配料3重量(0-255g)
             settingsData.append(String.format("%02X", settings.getIngredient4Weight())).append(" ");   // VB67: 配料4重量(0-255g)
             settingsData.append(String.format("%02X", settings.getIngredient5Weight())).append(" ");   // VB68: 配料5重量(0-255g)
-            
+
             // 添加机器人设置
             settingsData.append(String.format("%02X", settings.getBeefSoupTime())).append(" ");        // VB74: 汤牛肉时间设置(0-255秒)
             settingsData.append(String.format("%02X", settings.getRobotAutoMode() ? 1 : 0)).append(" "); // VB75: 机器人模式(1:自动,0:手动)
             settingsData.append(String.format("%02X", settings.getRobotEmergencyStop() ? 1 : 0)).append(" "); // VB76: 机器人急停开关(1:开启,0:关闭)
-            
+
             // 计算已添加的字节数
             int currentBytes = settingsData.toString().split(" ").length;
-            
+
             // 如果原始数据长度超过100（即有VB100及以后的数据）
             if (dataArray.length > 100) {
                 // 补充剩余字节直到VB99（共50个字节，VB50-VB99）
                 int bytesToAdd = 50 - currentBytes;
-                
+
                 for (int i = 0; i < bytesToAdd; i++) {
                     settingsData.append("00").append(" ");
                 }
-                
+
                 // 保留VB100及以后的数据（不包括最后的FF）
                 String dataAfterVB99 = String.join(" ", Arrays.copyOfRange(dataArray, 100, dataArray.length - 1));
-                
+
                 // 合并数据：前50字节 + 中间50字节 + 后面的字节 + 结束标记FF
                 String finalPlcData = dataBeforeVB50 + " " + settingsData.toString().trim() + " " + dataAfterVB99 + " " + PLC_DATA_END;
                 log.info("准备发送到PLC的数据共{}字节", finalPlcData.split(" ").length);
-                
+
                 // 存入Redis并发送到PLC
                 redisTemplate.opsForValue().set(PlcServiceImpl.PLC_SEND_DATA_KEY, finalPlcData);
                 plcServiceImpl.sendDataToPlc();
             } else {
                 // 如果原始数据长度不超过100，则只需要补充到VB99
                 int bytesToAdd = 48 - currentBytes;
-                
+
                 for (int i = 0; i < bytesToAdd; i++) {
                     settingsData.append("00").append(" ");
                 }
-                
+
                 // 添加结束标记FF
                 settingsData.append(PLC_DATA_END);
-                
+
                 // 合并数据
                 String finalPlcData = dataBeforeVB50 + " " + settingsData.toString().trim();
                 log.info("准备发送到PLC的数据共{}字节", finalPlcData.split(" ").length);
-                
+
                 // 存入Redis并发送到PLC
                 redisTemplate.opsForValue().set(PlcServiceImpl.PLC_SEND_DATA_KEY, finalPlcData);
                 plcServiceImpl.sendDataToPlc();
             }
-            
+
             // 更新当前设置
             currentSettings = settings;
-            
+
             return Result.success(settings);
         } catch (Exception e) {
             log.error("保存设置失败: {}", e.getMessage());
@@ -277,60 +277,7 @@ public class MachineServiceImpl implements MachineService {
         }
     }
 
-    /**
-     * 验证设置参数的合法性
-     */
-    private void validateSettings(MachineSettings settings) {
-        // 验证所有数值是否在0-255范围内
-        validateRange(settings.getOpenLockTime(), "开门锁通电时间");
-        validateRange(settings.getSoupMaxTemperature(), "汤最高温度");
-        validateRange(settings.getSoupMinTemperature(), "汤最低温度");
-        validateRange(settings.getSoupQuantity(), "汤数量");
-        validateRange(settings.getFanVentilationTime(), "排油烟风扇通风时间");
-        validateRange(settings.getElectricalBoxFanTemp(), "电柜风扇通风温度");
-        validateRange(settings.getElectricalBoxFanHumidity(), "电柜风扇通风湿度");
-        
-        // 验证价格设置
-        validateRange(settings.getPrice1(), "价格1");
-        validateRange(settings.getPrice2(), "价格2");
-        validateRange(settings.getPrice3(), "价格3");
-        validateRange(settings.getPrice4(), "价格4");
-        validateRange(settings.getPrice5(), "价格5");
-        
-        // 验证配料重量设置
-        validateRange(settings.getIngredient1Weight(), "配料1重量");
-        validateRange(settings.getIngredient2Weight(), "配料2重量");
-        validateRange(settings.getIngredient3Weight(), "配料3重量");
-        validateRange(settings.getIngredient4Weight(), "配料4重量");
-        validateRange(settings.getIngredient5Weight(), "配料5重量");
-        
-        // 验证机器人设置
-        validateRange(settings.getBeefSoupTime(), "汤牛肉时间");
 
-        // 验证温度逻辑
-        if (settings.getSoupMaxTemperature() < settings.getSoupMinTemperature()) {
-            throw new IllegalArgumentException("汤最高温度不能低于最低温度");
-        }
-    }
-
-    /**
-     * 验证数值是否在0-255范围内
-     */
-    private void validateRange(int value, String fieldName) {
-        if (value < 0 || value > 255) {
-            throw new IllegalArgumentException(fieldName + "必须在0-255范围内");
-        }
-    }
-
-    /**
-     * 将整数值转换为两个字节的16进制字符串并添加到StringBuilder
-     */
-    private void appendTwoByteHex(StringBuilder sb, int value) {
-        // 高字节
-        sb.append(String.format("%02X", (value >> 8) & 0xFF)).append(" ");
-        // 低字节
-        sb.append(String.format("%02X", value & 0xFF)).append(" ");
-    }
 
     // ==================== 机器状态相关方法 ====================
 
@@ -373,8 +320,6 @@ public class MachineServiceImpl implements MachineService {
         status.put("runtime", machineStatus.getRunTime());
         status.put("robotStatus", machineStatus.getRobotStatus());
         status.put("robotMode", machineStatus.getRobotMode());
-        status.put("robotEmergencyStop", machineStatus.getRobotEmergencyStop());
-        status.put("currentProgram", machineStatus.getCurrentProgram());
         status.put("electricalBoxTemp", machineStatus.getElectricalBoxTemp());
         status.put("electricalBoxHumidity", machineStatus.getElectricalBoxHumidity());
         status.put("electricalBoxStatus", machineStatus.getElectricalBoxStatus());
@@ -1328,25 +1273,6 @@ public class MachineServiceImpl implements MachineService {
         }
     }
 
-    /**
-     * 将实际金额转换为PLC价格编号（1-5）
-     * 
-     * @param actualPrice 实际金额
-     * @return 价格编号（1-5）
-     */
-    private Integer convertPriceToLevel(Integer actualPrice) {
-        // 根据前端页面顺序，将实际金额映射到价格编号
-        // 这里需要根据实际价格配置进行映射
-        // 示例实现：
-        Map<Integer, Integer> priceToLevelMap = new HashMap<>();
-        priceToLevelMap.put(10, 1); // 假设10元对应第一个价格选项
-        priceToLevelMap.put(15, 2); // 假设15元对应第二个价格选项
-        priceToLevelMap.put(20, 3); // 假设20元对应第三个价格选项
-        priceToLevelMap.put(30, 4); // 假设30元对应第四个价格选项
-        priceToLevelMap.put(40, 5); // 假设40元对应第五个价格选项（备用）
-        
-        return priceToLevelMap.getOrDefault(actualPrice, 1); // 默认返回1
-    }
 
     /**
      * 处理手动指令
@@ -1361,7 +1287,6 @@ public class MachineServiceImpl implements MachineService {
             
             // 获取指令ID和名称
             Object commandIdObj = commandData.get("commandId");
-            String commandName = (String) commandData.get("commandName");
             Boolean isNewOrder = (Boolean) commandData.getOrDefault("isNewOrder", false);
             
             // 转换commandId为整数或字符串
@@ -1402,7 +1327,7 @@ public class MachineServiceImpl implements MachineService {
                         if (numberObj != null) {
                             // 有参数的指令处理
                             String number = String.valueOf(numberObj);
-                            return handleCommandWithParameter(id, number, isNewOrder, dataArray);
+                            return handleCommandWithParameter(id, number, isNewOrder);
                         } else {
                             // 无参数的指令处理
                             return handleCommand(id,  dataArray);
@@ -1421,17 +1346,9 @@ public class MachineServiceImpl implements MachineService {
     // 处理急停指令
     private Result handleEmergencyStop(String[] dataArray) {
         try {
-            // 确保数组长度足够
-            if (dataArray.length <= 10) {
-                return Result.error("PLC数据长度不足");
-            }
-            
-            // 修改VB10.7为1，表示急停
-            // 获取VB10的当前值
-            int vb10Value = Integer.parseInt(dataArray[10], 16);
-            // 设置第7位为1 (0x80 = 10000000)
-            vb10Value |= 0x80;
-            dataArray[10] = String.format("%02X", vb10Value);
+            dataArray[4] = "00";
+            dataArray[6] = "00";
+            dataArray[7] = "01";
             
             // 重新组合数据并发送
             String updatedPlcData = String.join(" ", dataArray);
@@ -1449,13 +1366,9 @@ public class MachineServiceImpl implements MachineService {
     // 处理复位指令
     private Result handleReset(String[] dataArray) {
         try {
-            // 确保数组长度足够
-            if (dataArray.length <= 5) {
-                return Result.error("PLC数据长度不足");
-            }
-            
-            // 修改VB106为1，表示复位
+            dataArray[4] = "00";
             dataArray[6] = "01";
+            dataArray[7] = "00";
             
             // 重新组合数据并发送
             String updatedPlcData = String.join(" ", dataArray);
@@ -1486,8 +1399,8 @@ public class MachineServiceImpl implements MachineService {
                 log.info("关闭柜灯指令已发送到VB108");
             } else {
                 // 其他所有按钮ID都写入VB107
-                dataArray[7] = String.format("%02X", commandId);
-                log.info("已发送指令ID {} 到VB107", commandId);
+                dataArray[9] = String.format("%02X", commandId);
+                log.info("已发送指令ID {} 到VB109", commandId);
             }
             
             // 重新组合数据并发送
@@ -1503,7 +1416,7 @@ public class MachineServiceImpl implements MachineService {
     }
 
     // 处理带参数的指令
-    private Result handleCommandWithParameter(int id, String parameter, boolean isNewOrder, String[] dataArray) {
+    private Result handleCommandWithParameter(int id, String parameter, boolean isNewOrder) {
         // 实现带参数的处理逻辑
         // 这里需要根据指令ID、参数和是否新订单进行相应的处理
         log.info("处理带参数的指令: ID={}, 参数={}, 是否新订单={}", id, parameter, isNewOrder);
