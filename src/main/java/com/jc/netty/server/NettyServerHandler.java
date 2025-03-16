@@ -108,7 +108,6 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
         if (cause instanceof java.net.SocketException && cause.getMessage().contains("Connection reset")) {
             InetSocketAddress clientAddress = (InetSocketAddress) ctx.channel().remoteAddress();
             String clientIp = clientAddress.getAddress().toString().replace("/", "");
-        } else {
         }
         // 关闭上下文
         ctx.close();

@@ -117,7 +117,7 @@ public class MqttConsumerCallBack implements MqttCallback {
             log.error("查找不到密钥");
             return;
         }
-        Boolean flag = signService.verifyData(String.valueOf(message), String.valueOf(o));
+        boolean flag = signService.verifyData(String.valueOf(message), String.valueOf(o));
         if (!flag) {
             log.error("未通过签名验证");
             return;

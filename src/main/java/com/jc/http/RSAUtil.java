@@ -20,7 +20,6 @@ public final class RSAUtil {
     public enum SignAlgorithm {
         SHA256withRSA,
         MD5withRSA,
-        ;
     }
 
     private static final Charset charset = StandardCharsets.UTF_8;

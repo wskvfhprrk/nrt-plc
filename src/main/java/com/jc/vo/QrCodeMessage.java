@@ -3,7 +3,7 @@ package com.jc.vo;
 import java.util.Date;
 
 public class QrCodeMessage {
-    private String type = "QR_CODE";
+    private final ThreadLocal<String> type = ThreadLocal.withInitial(() -> "QR_CODE");
     private String qrCodeUrl;
     private Date timestamp;
 
@@ -16,7 +16,7 @@ public class QrCodeMessage {
     }
 
     public String getType() {
-        return type;
+        return type.get();
     }
 
     public String getQrCodeUrl() {

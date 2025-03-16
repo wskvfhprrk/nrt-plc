@@ -28,7 +28,7 @@ public class WebConfig implements WebMvcConfigurer, WebSocketConfigurer {
                 .withSockJS();
     }
 
-    class MyWebSocketHandler extends TextWebSocketHandler {
+    static class MyWebSocketHandler extends TextWebSocketHandler {
         @Override
         protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
             String payload = message.getPayload();

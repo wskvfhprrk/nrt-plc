@@ -4,10 +4,10 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class ModbusRTUFrame {
-    private byte slaveAddress;
-    private byte functionCode;
-    private byte[] data;
-    private int crc;
+    private final byte slaveAddress;
+    private final byte functionCode;
+    private final byte[] data;
+    private final int crc;
 
     public ModbusRTUFrame(byte slaveAddress, byte functionCode, byte[] data, int crc) {
         this.slaveAddress = slaveAddress;

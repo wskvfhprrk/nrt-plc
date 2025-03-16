@@ -41,7 +41,7 @@
       <div class="button-group">
         <h3 class="section-title">切肉设置</h3>
         <div class="button-columns">
-          <div v-for="(btn, index) in meatCutButtons" :key="`meatcut-${index}`" class="button-column">
+          <div v-for="(btn, index) in meatCutButtons" :key="`meat-cut-${index}`" class="button-column">
             <el-button type="primary" :style="buttonStyle" @click="openDialog(btn.id, btn.name)">
               {{ btn.name }}
             </el-button>
@@ -185,16 +185,6 @@ export default {
     }
   },
   methods: {
-    async sendRequest(url) {
-      try {
-        const response = await axios.get(`${url}?isNewOrder=false`);
-        this.$message.success(`操作成功：${response.data}`);
-        console.log(response.data);
-      } catch (error) {
-        this.$message.error('操作失败');
-        console.error(error);
-      }
-    },
     async sendManualCommand(commandId, commandName, params = {}) {
       try {
         // 构建请求参数

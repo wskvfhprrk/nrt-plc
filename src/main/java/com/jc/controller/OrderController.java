@@ -88,15 +88,9 @@ public class OrderController {
                 completedOrders = new ArrayList<>();
             }
 
-            List<Order> pendingOrdersList = pendingOrders.stream().map(s -> {
-                return JSON.parseObject(s, Order.class);
-            }).collect(Collectors.toList());
-            List<Order> inProgressOrdersList = inProgressOrders.stream().map(s -> {
-                return JSON.parseObject(s, Order.class);
-            }).collect(Collectors.toList());
-            List<Order> completedOrdersList = completedOrders.stream().map(s -> {
-                return JSON.parseObject(s, Order.class);
-            }).collect(Collectors.toList());
+            List<Order> pendingOrdersList = pendingOrders.stream().map(s -> JSON.parseObject(s, Order.class)).collect(Collectors.toList());
+            List<Order> inProgressOrdersList = inProgressOrders.stream().map(s -> JSON.parseObject(s, Order.class)).collect(Collectors.toList());
+            List<Order> completedOrdersList = completedOrders.stream().map(s -> JSON.parseObject(s, Order.class)).collect(Collectors.toList());
             // 创建OrderStatusResponse对象
             OrderStatusResponse orderStatusResponse = new OrderStatusResponse(pendingOrdersList, inProgressOrdersList, completedOrdersList);
 
@@ -156,9 +150,8 @@ public class OrderController {
         }
         // 遍历 keyList，找到最后一个 OrderPayMessage
         OrderPayMessage lastOrderPayMessage = null;
-        for (int i = 0; i < keyList.size(); i++) {
-            String key = keyList.get(i);
-            String value = redisTemplate.opsForValue().get(key).toString();
+        for (String key : keyList) {
+            String value = Objects.requireNonNull(redisTemplate.opsForValue().get(key)).toString();
             lastOrderPayMessage = JSON.parseObject(value, OrderPayMessage.class); // 更新最后一个值
         }
 

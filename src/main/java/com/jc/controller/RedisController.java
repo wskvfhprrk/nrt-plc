@@ -17,12 +17,17 @@ public class RedisController {
         // 读取值
         String value = (String) redisTemplate.opsForValue().get("plc:data");
         System.out.println("读取到的值: " + value);
-        String[] parts = value.split(" ");
+        String[] parts = null;
+        if (value != null) {
+            parts = value.split(" ");
+        }
         // 限制值的范围，大于255时设置为255
         int limitedValue = Math.min(newValue, 255);
         // 将整数转换为两位十六进制字符串
         String hexValue = String.format("%02X", limitedValue);
-        parts[index] = hexValue;
+        if (parts != null) {
+            parts[index] = hexValue;
+        }
         String newString = String.join(" ", parts);
         System.out.println("新修改的字符串为：" + newString);
         // 写入值到另一个键

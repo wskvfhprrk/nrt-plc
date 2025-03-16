@@ -1,6 +1,7 @@
 package com.jc.utils;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.regex.*;
 
@@ -25,7 +26,7 @@ public class FileModifier {
         }
 
         // 读取文件内容
-        String content = new String(Files.readAllBytes(file.toPath()), "UTF-8");
+        String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
 
         // 构建正则表达式动态匹配指定参数
         String regex = "(?<=set \"" + parameter + "=)(\\d+|\\S+)";  // 匹配数字或者非空字符
@@ -37,7 +38,7 @@ public class FileModifier {
             String modifiedContent = content.replaceAll("(?<=set \"" + parameter + "=)[^\"\r\n]+", value);
 
             // 将修改后的内容写回文件
-            Files.write(file.toPath(), modifiedContent.getBytes("UTF-8"));
+            Files.write(file.toPath(), modifiedContent.getBytes(StandardCharsets.UTF_8));
 
             System.out.println("文件中的 " + parameter + " 参数值已更新为：" + value);
         } else {

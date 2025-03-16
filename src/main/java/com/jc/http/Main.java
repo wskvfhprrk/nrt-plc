@@ -24,7 +24,7 @@ public class Main {
     }
 
     static class Signer {
-        private String hashAlgorithm;
+        private final String hashAlgorithm;
 
         public Signer(String hashAlgorithm) {
             this.hashAlgorithm = hashAlgorithm;

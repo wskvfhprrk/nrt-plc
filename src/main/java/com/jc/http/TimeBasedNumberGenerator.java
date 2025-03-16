@@ -14,16 +14,16 @@ public class TimeBasedNumberGenerator {
         long timeInSeconds = currentTimeMillis / 1000;
 
         // 如果长度不足10位，在末尾添加随机数字
-        String timeBasedString = String.valueOf(timeInSeconds);
+        StringBuilder timeBasedString = new StringBuilder(String.valueOf(timeInSeconds));
         while (timeBasedString.length() < 10) {
-            timeBasedString += (int)(Math.random() * 10);
+            timeBasedString.append((int) (Math.random() * 10));
         }
 
         // 如果长度超过10位，截取前10位
         if (timeBasedString.length() > 10) {
-            timeBasedString = timeBasedString.substring(0, 10);
+            timeBasedString = new StringBuilder(timeBasedString.substring(0, 10));
         }
 
-        return timeBasedString;
+        return timeBasedString.toString();
     }
 }

@@ -9,9 +9,9 @@ public static String  convertStringToHex(String str){
 
     char[] chars = str.toCharArray();
 
-    StringBuffer hex = new StringBuffer();
-    for(int i = 0; i < chars.length; i++){
-        hex.append(Integer.toHexString((int)chars[i]));
+    StringBuilder hex = new StringBuilder();
+    for (char aChar : chars) {
+        hex.append(Integer.toHexString((int) aChar));
     }
 
     return hex.toString();
@@ -86,14 +86,14 @@ public static String  convertStringToHex(String str){
      */
     public static String BinaryToHexString(byte[] bytes) {
     String hexStr = "0123456789ABCDEF";
-    String result = "";
-    String hex = "";
+    StringBuilder result = new StringBuilder();
+    String hex;
     for (byte b : bytes) {
         hex = String.valueOf(hexStr.charAt((b & 0xF0) >> 4));
         hex += String.valueOf(hexStr.charAt(b & 0x0F));
-        result += hex + " ";
+        result.append(hex).append(" ");
     }
-    return result;
+    return result.toString();
 }
 
     /**

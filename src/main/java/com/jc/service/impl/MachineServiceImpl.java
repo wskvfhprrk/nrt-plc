@@ -856,7 +856,7 @@ public class MachineServiceImpl implements MachineService {
     }
 
     @Override
-    public Result resetAlert(int id) {
+    public Result<String> resetAlert(int id) {
         try {
             // 先从Redis加载最新的报警信息
             loadAlertsFromRedis();
@@ -886,7 +886,7 @@ public class MachineServiceImpl implements MachineService {
 
     @Override
     @Transactional
-    public Result clearAllAlerts() {
+    public Result<String> clearAllAlerts() {
         try {
             // 清除内存中的报警记录
             alerts.clear();
@@ -1179,7 +1179,7 @@ public class MachineServiceImpl implements MachineService {
      * @return 处理结果
      */
     @Override
-    public Result resetAlarmViaPlc() {
+    public Result<String> resetAlarmViaPlc() {
         try {
             log.info("准备通过PLC复位报警");
             
