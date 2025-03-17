@@ -1286,11 +1286,10 @@ public class MachineServiceImpl implements MachineService {
         try {
             log.info("接收到手动指令: {}", commandData);
             
-            // 获取指令ID和名称
+            // 获取指令ID和目标字节
             Object commandIdObj = commandData.get("commandId");
-            Boolean isNewOrder = (Boolean) commandData.getOrDefault("isNewOrder", false);
             
-            // 转换commandId为整数或字符串
+            // 转换commandId为字符串
             String commandId;
             if (commandIdObj instanceof Integer) {
                 commandId = String.valueOf(commandIdObj);
@@ -1309,118 +1308,62 @@ public class MachineServiceImpl implements MachineService {
             currentPlcData = currentPlcData.replaceAll("\\s+", " ").trim();
             String[] dataArray = currentPlcData.split(" ");
             
-            // 根据指令ID处理不同的手动指令
-            switch (commandId) {
-                case "emergencyStop":
-                    // 处理急停指令
-                    return handleEmergencyStop(dataArray);
-                    
-                case "reset":
-                    // 处理复位指令
-                    return handleReset(dataArray);
-                    
-                default:
-                    // 处理其他数字ID的指令
-                    try {
-                        int id = Integer.parseInt(commandId);
-                        // 检查是否有额外参数
-                        Object numberObj = commandData.get("number");
-                        if (numberObj != null) {
-                            // 有参数的指令处理
-                            String number = String.valueOf(numberObj);
-                            return handleCommandWithParameter(id, number, isNewOrder);
-                        } else {
-                            // 无参数的指令处理
-                            return handleCommand(id,  dataArray);
-                        }
-                    } catch (NumberFormatException e) {
-                        log.error("无效的指令ID: {}", commandId);
-                        return Result.error("无效的指令ID");
-                    }
+            // 检查数据格式
+            if (dataArray.length < 2 || !dataArray[0].equals(PLC_DATA_START) || !dataArray[dataArray.length - 1].equals(PLC_DATA_END)) {
+                log.error("PLC数据格式错误：开头必须为00，结尾必须为FF");
+                return Result.error("PLC数据格式错误");
             }
+
+            // 设置新订单标志为0
+            dataArray[4] = "00"; // VB4 新订单标志设为0
+            
+            // 处理特殊指令
+            if ("reset".equals(commandId)) {
+                // 复位指令
+                dataArray[5] = "01"; // VB5 复位标志设为1
+                dataArray[7] = "00"; // VB7 急停标志设为0
+                log.info("执行复位指令");
+            } else if ("emergencyStop".equals(commandId)) {
+                // 急停指令
+                dataArray[5] = "00"; // VB5 复位标志设为0
+                dataArray[7] = "01"; // VB7 急停标志设为1
+                log.info("执行急停指令");
+            } else if ("lightOn".equals(commandId)) {
+                // 开灯指令 - 直接写入VB108
+                dataArray[5] = "00"; // VB5 复位标志设为0
+                dataArray[7] = "00"; // VB7 急停标志设为0
+                dataArray[8] = "01"; // VB108 打开柜灯为1
+                log.info("执行开灯指令, 设置VB108=01");
+            } else if ("lightOff".equals(commandId)) {
+                // 关灯指令 - 直接写入VB108
+                dataArray[5] = "00"; // VB5 复位标志设为0
+                dataArray[7] = "00"; // VB7 急停标志设为0
+                dataArray[8] = "00"; // VB108 关闭柜灯为0
+                log.info("执行关灯指令, 设置VB108=00");
+            } else {
+                // 普通手动指令
+                dataArray[5] = "00"; // VB5 复位标志设为0
+                dataArray[7] = "00"; // VB7 急停标志设为0
+                try {
+                    int id = Integer.parseInt(commandId);
+                    // 手动指令写入VB109
+                    dataArray[9] = String.format("%02X", id);
+                    log.info("执行手动指令ID: {}, 设置VB109={}", id, String.format("%02X", id));
+                } catch (NumberFormatException e) {
+                    log.error("无效的指令ID格式: {}", commandId);
+                    return Result.error("无效的指令ID格式: " + commandId);
+                }
+            }
+            // 重新组合数据并发送
+            String updatedPlcData = String.join(" ", dataArray);
+            redisTemplate.opsForValue().set(PlcServiceImpl.PLC_SEND_DATA_KEY, updatedPlcData);
+            plcServiceImpl.sendDataToPlc();
+            
+            return Result.success("指令已发送: " + commandId);
+            
         } catch (Exception e) {
             log.error("处理手动指令失败: {}", e.getMessage());
             return Result.error("处理手动指令失败: " + e.getMessage());
         }
-    }
-
-    // 处理急停指令
-    private Result<String> handleEmergencyStop(String[] dataArray) {
-        try {
-            dataArray[4] = "00";
-            dataArray[6] = "00";
-            dataArray[7] = "01";
-            
-            // 重新组合数据并发送
-            String updatedPlcData = String.join(" ", dataArray);
-            redisTemplate.opsForValue().set(PlcServiceImpl.PLC_SEND_DATA_KEY, updatedPlcData);
-            plcServiceImpl.sendDataToPlc();
-            
-            log.info("急停指令已发送到PLC");
-            return Result.success("急停指令已发送");
-        } catch (Exception e) {
-            log.error("发送急停指令失败: {}", e.getMessage());
-            return Result.error("发送急停指令失败: " + e.getMessage());
-        }
-    }
-
-    // 处理复位指令
-    private Result<String> handleReset(String[] dataArray) {
-        try {
-            dataArray[4] = "00";
-            dataArray[6] = "01";
-            dataArray[7] = "00";
-            
-            // 重新组合数据并发送
-            String updatedPlcData = String.join(" ", dataArray);
-            redisTemplate.opsForValue().set(PlcServiceImpl.PLC_SEND_DATA_KEY, updatedPlcData);
-            plcServiceImpl.sendDataToPlc();
-            
-            log.info("复位指令已发送到PLC");
-            return Result.success("复位指令已发送");
-        } catch (Exception e) {
-            log.error("发送复位指令失败: {}", e.getMessage());
-            return Result.error("发送复位指令失败: " + e.getMessage());
-        }
-    }
-
-    // 处理其他数字ID的指令
-    private Result<String> handleCommand(int commandId, String[] dataArray) {
-        try {
-
-            // 当手动时，新订单为0
-            dataArray[4] = "00"; // VB104 新订单标志设为0
-            
-            // 处理开关灯特殊情况
-            if (commandId == 23) { // 打开柜灯
-                dataArray[8] = "01"; // VB108 打开柜灯为1时打开
-                log.info("打开柜灯指令已发送到VB108");
-            } else if (commandId == 24) { // 关闭柜灯
-                dataArray[8] = "00"; // VB108 关闭柜灯为0时关闭
-                log.info("关闭柜灯指令已发送到VB108");
-            } else {
-                // 其他所有按钮ID都写入VB107
-                dataArray[9] = String.format("%02X", commandId);
-                log.info("已发送指令ID {} 到VB109", commandId);
-            }
-            
-            // 重新组合数据并发送
-            String updatedPlcData = String.join(" ", dataArray);
-            redisTemplate.opsForValue().set(PlcServiceImpl.PLC_SEND_DATA_KEY, updatedPlcData);
-            plcServiceImpl.sendDataToPlc();
-
-            return Result.success("指令已处理");
-        } catch (Exception e) {
-            log.error("处理指令失败: {}", e.getMessage());
-            return Result.error("处理指令失败: " + e.getMessage());
-        }
-    }
-
-    // 处理带参数的指令
-    private Result<String> handleCommandWithParameter(int id, String parameter, boolean isNewOrder) {
-        // 实现带参数的处理逻辑
-        // 这里需要根据指令ID、参数和是否新订单进行相应的处理
-        log.info("处理带参数的指令: ID={}, 参数={}, 是否新订单={}", id, parameter, isNewOrder);
-        return Result.success("指令已处理");
     }
 }
